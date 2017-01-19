@@ -2,10 +2,10 @@
 <widget id="com.ionicframework.lseinvest433921" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <name>LSEInvest</name>
   <description>
-        An Ionic Framework and Cordova project.
+        A Stock Market Simulator brought to you by LSE Investment Society.
     </description>
-  <author email="you@example.com" href="http://example.com/">
-      Your Name Here
+  <author email="johngwyneth@hotmail.com" href="http://hotmail.com/">
+      John Gwyneth, Head of Technology.
     </author>
   <content src="index.html"/>
   <access origin="*"/>
