@@ -4,7 +4,9 @@ angular.module('LSEInvest', [
   'LSEInvest.controllers',
   'LSEInvest.services',
   'LSEInvest.filters',
-  'LSEInvest.directives'
+  'LSEInvest.directives',
+  'nvd3',
+  'nvChart'
 ])
 
 .run(function($ionicPlatform) {
