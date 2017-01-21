@@ -1,6 +1,6 @@
 {
   "name": "LSEInvest",
-  "app_id": "",
+  "app_id": "2e909b36",
   "gulpStartupTasks": [
     "sass",
     "watch"

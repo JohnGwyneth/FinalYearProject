@@ -12,12 +12,12 @@ angular.module('LSEInvest.services', [])
 .factory('dateService', function($filter){
   var currentDate = function(){
     var d = new Date();
-    var date = $filter('date')(d, 'yyyy-mm-dd');
+    var date = $filter('date')(d, 'yyyy-MM-dd');
     return date;
   };
   var oneYearAgoDate = function() {
     var d = new Date(new Date().setDate(new Date().getDate() - 365));
-    var date = $filter('date')(d, 'yyyy-mm-dd');
+    var date = $filter('date')(d, 'yyyy-MM-dd');
     return date;
   };
   return {
@@ -28,7 +28,47 @@ angular.module('LSEInvest.services', [])
 
 .factory('chartDataService', function($q, $http, encodeURIService){
   var getHistoricalData = function(ticker, fromDate, todayDate){
+    var deferred = $q.defer(),
+    query = 'select * from yahoo.finance.historicaldata where symbol = "' + ticker + '" and startDate = "' + fromDate + '" and endDate = "' + todayDate + '"';
+    url = 'http://query.yahooapis.com/v1/public/yql?q=' + encodeURIService.encode(query) + '&format=json&env=http://datatables.org/alltables.env';
 
+    $http.get(url)
+      .success(function(json){
+        var jsonData = json.query.results.quote;
+
+        var priceData = [],
+        volumeData = [];
+
+        jsonData.forEach(function(dayDataObject){
+          var dateToMillis = dayDataObject.Date,
+            date = Date.parse(dateToMillis),
+            price = parseFloat(Math.round(dayDataObject.Close * 100) / 100).toFixed(3),
+            volume = dayDataObject.Volume,
+
+            volumeDatum = '[' + date + ',' + volume + ']',
+            priceDatum = '[' + date + ',' + price + ']';
+
+            volumeData.unshift(volumeDatum);
+            priceData.unshift(priceDatum);
+        });
+        var formattedChartData =
+        '[{' +
+          '"key":' + '"volume",' +
+          '"bar":' + 'true,' +
+          '"values":' + '[' + volumeData + ']' +
+        '},' +
+        '{' +
+          '"key":' + '"' + ticker + '",' +
+          '"values":' + '[' + priceData + ']' +
+        '}]';
+
+      deferred.resolve(formattedChartData);
+      })
+      .error(function(error){
+        console.log("Chart data error: " + error);
+        deferred.reject();
+      });
+      return deferred.promise;
   };
   return{
     getHistoricalData:getHistoricalData
