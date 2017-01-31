@@ -10,9 +10,31 @@ angular.module('LSEInvest.controllers', [])
   //  };
 }])
 
-.controller('MyStocksCtrl', ['$scope', 'myStocksArrayService',
-  function($scope, myStocksArrayService) {
-    $scope.myStocksArray = myStocksArrayService;
+.controller('MyStocksCtrl', ['$scope', 'myStocksArrayService', 'stockDataService','stockPriceCacheService',
+  function($scope, myStocksArrayService, stockDataService, stockPriceCacheService) {
+
+    $scope.$on("$ionicView.afterEnter", function() {
+      $scope.getMyStocksData();
+    });
+
+    $scope.getMyStocksData = function(){
+      myStocksArrayService.forEach(function(stock) {
+
+        var promise = stockDataService.getPriceData(stock.ticker);
+
+        $scope.myStocksData = [];
+
+        promise.then(function(data) {
+          $scope.myStocksData.push(stockPriceCacheService.get(data.symbol));
+        });
+      });
+      $scope.$broadcast('scroll.refreshComplete');
+    };
+
+    $scope.unfollowStock = function(ticker) {
+      followStockService.unfollow(ticker);
+      $scope.getMyStocksData();
+    };
 }])
 
 .controller('StockCtrl', ['$scope', '$stateParams', '$window', '$ionicPopup', 'stockDataService', 'dateService', 'chartDataService','notesService', 'newsService', 'followStockService',
@@ -242,29 +264,31 @@ function getChartData() {
 }])
 
 
-.controller('SearchCtrl', ['$scope', 'modalService',
-  function($scope, modalService) {
+.controller('SearchCtrl', ['$scope', '$state', 'modalService', 'searchService',
+  function($scope, $state, modalService, searchService) {
 
-    // $scope.closeModal = function() {
-    //   modalService.closeModal();
-    // };
-    //
-    // $scope.search = function() {
-    //   $scope.searchResults = '';
-    //   startSearch($scope.searchQuery);
-    // };
-    //
-    // var startSearch = ionic.debounce(function(query) {
-    //   searchService.search(query)
-    //     .then(function(data) {
-    //       $scope.searchResults = data;
-    //     });
-    // }, 400);
-    //
-    // $scope.goToStock = function(ticker) {
-    //   modalService.closeModal();
-    //   $state.go('app.stock', {stockTicker: ticker});
-    // };
+    $scope.closeModal = function() {
+      modalService.closeModal();
+    };
+
+    $scope.search = function() {
+      $scope.searchResults = '';
+      startSearch($scope.searchQuery);
+    };
+
+    var startSearch = ionic.debounce(function(query) {
+      searchService.search(query)
+        .then(function(data) {
+          $scope.searchResults = data;
+        });
+    }, 400);
+
+    $scope.goToStock = function(ticker) {
+      modalService.closeModal();
+      $state.go('app.stock', {stockTicker: ticker});
+    };
+
+
 }])
 
 ;

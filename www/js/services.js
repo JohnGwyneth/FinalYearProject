@@ -135,6 +135,42 @@ angular.module('LSEInvest.services', [])
     };
   })
 
+  .factory('stockPriceCacheService', function(CacheFactory) {
+
+    var stockPriceCache;
+
+    if(!CacheFactory.get('stockPriceCache')) {
+      stockPriceCache = CacheFactory('stockPriceCache', {
+        maxAge: 5 * 1000,
+        deleteOnExpire: 'aggressive',
+        storageMode: 'localStorage'
+      });
+    }
+    else {
+      stockPriceCache = CacheFactory.get('stockPriceCache');
+    }
+
+    return stockPriceCache;
+  })
+
+//   .factory('stockDetailsCacheService', function(CacheFactory) {
+//
+//   var stockDetailsCache;
+//
+//   if(!CacheFactory.get('stockDetailsCache')) {
+//     stockDetailsCache = CacheFactory('stockDetailsCache', {
+//       maxAge: 60 * 1000,
+//       deleteOnExpire: 'aggressive',
+//       storageMode: 'localStorage'
+//     });
+//   }
+//   else {
+//     stockDetailsCache = CacheFactory.get('stockDetailsCache');
+//   }
+//
+//   return stockDetailsCache;
+// })
+
 .factory('chartDataCacheService', function(CacheFactory) {
 
   var chartDataCache;
@@ -337,7 +373,7 @@ angular.module('LSEInvest.services', [])
   };
 })
 
-.factory('stockDataService', function($q, $http, encodeURIService){
+.factory('stockDataService', function($q, $http, encodeURIService, stockPriceCacheService){
 
   var getDetailsData = function(ticker) {
     var deferred = $q.defer(),
@@ -363,6 +399,7 @@ angular.module('LSEInvest.services', [])
 
   var getPriceData = function(ticker){
     var deferred = $q.defer(),
+    cacheKey = ticker,
     url = "http://finance.yahoo.com/webservice/v1/symbols/" + ticker + "/quote?format=json&view=detail";
 
     $http.get(url)
@@ -370,6 +407,7 @@ angular.module('LSEInvest.services', [])
         // console.log(jsonData.data.list.resources[0].resource.fields);
         var jsonData = json.list.resources[0].resource.fields;
         deferred.resolve(jsonData);
+        stockPriceCacheService.put(cacheKey, jsonData);
       })
       .error(function(error) {
         console.log("Price data error: " + error);

@@ -1,3 +1,70 @@
+
+/* My Stocks */
+
+#my-stocks .item-content {
+  padding: 5px 0px 5px 5px;
+}
+
+#my-stocks h3 {
+  font-size: 4.75vmin;
+}
+
+#my-stocks h6 {
+  font-size: 3vmin;
+  font-weight: 300;
+}
+
+#my-stocks .stock-price-time {
+  padding-right: 10px;
+  text-align: right;
+}
+
+#my-stocks .stock-ticker-name {
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+
+#my-stocks .stock-price-time h3 {
+  font-weight: normal;
+}
+
+#my-stocks .stock-change {
+  border-bottom-left-radius: 3px;
+  border-top-left-radius: 3px;
+  margin-right: -10px;
+}
+
+#my-stocks .stock-change h3,
+#my-stocks .stock-change h6 {
+  color: #fff;
+}
+
+#my-stocks .inset-shadow {
+  -webkit-box-shadow: inset 0px 0px 15px rgba(0, 0, 0, .15);
+}
+
+
+
+
+
+
+/* Search */
+
+#search {
+  background-color: rgba(20, 20, 20, .975);
+}
+
+#search .search-input {
+  background-color: rgba(255, 255, 255,.1);
+}
+
+#search input {
+  color: #fff;
+}
+
+
+
 /* News card */
 
 #stock-news .icon {
@@ -232,7 +299,7 @@
 
 /* Helper Styles  */
 
-/*.background-red {
+.background-red {
   background-color: #ef473a !important;
 }
 
@@ -246,13 +313,13 @@
 
 .color-red {
   color: #ef473a !important;
-}*/
+}
 
 .display-flex {
   display: -webkit-flex !important;
 }
 
-/*.font-normal {
+.font-normal {
   font-weight: normal !important;
 }
 
@@ -264,7 +331,7 @@
 .no-margin {
   margin: 0 !important;
 }
-/*
+
 .text-align-center {
   text-align: center !important;
 }
@@ -275,7 +342,7 @@
 
 .text-capitalize {
   text-transform: capitalize !important;
-}*/
+}
 
 
 /* Adjustment Styles  */
