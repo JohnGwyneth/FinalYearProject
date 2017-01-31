@@ -1,11 +1,13 @@
 
 angular.module('LSEInvest', [
   'ionic',
+  'angular-cache',
   'LSEInvest.controllers',
   'LSEInvest.services',
   'LSEInvest.filters',
   'LSEInvest.directives',
   'nvd3',
+  'cb.x2js',
   'nvChart'
 ])
 
