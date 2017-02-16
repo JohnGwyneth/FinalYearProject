@@ -1,5 +1,7 @@
 angular.module('LSEInvest.services', [])
 
+// .constant('FIREBASE_URL', 'https://lseinvest-9ab49.firebaseio.com/')
+
 .service('modalService', function($ionicModal) {
 
   this.openModal = function(id) {
@@ -55,6 +57,178 @@ angular.module('LSEInvest.services', [])
   };
 })
 
+
+.factory('firebaseDBRef', function() {
+  return firebase.database().ref();
+})
+
+
+
+.factory('firebaseAuthRef', function() {
+  return firebase.auth();
+})
+
+
+
+.factory('firebaseUserRef', function(firebaseDBRef) {
+  return firebaseDBRef.child('users');
+})
+
+.factory('tradeService', function($firebase, firebaseDBRef, firebaseAuthRef, firebaseUserRef, userService ){
+
+
+
+})
+
+.factory('userService', function($q, $rootScope, $window, $timeout, firebaseDBRef, firebaseAuthRef, firebaseUserRef, myStocksArrayService, myStocksCacheService, notesCacheService, modalService) {
+
+  var login = function(user, signup) {
+    var email = user.email;
+    var password = user.password;
+
+    firebaseAuthRef.signInWithEmailAndPassword(email, password)
+      .then(function() {
+        $rootScope.currentUser = getUser();
+
+        if(signup) {
+          modalService.closeModal();
+        }
+        else {
+          myStocksCacheService.removeAll();
+          notesCacheService.removeAll();
+
+          loadUserData(getUser());
+
+          modalService.closeModal();
+          $timeout(function() {
+            $window.location.reload(true);
+          }, 400);
+        }
+      })
+      .catch(function(error) {
+        console.log("Login Failed!", error);
+        return false;
+      });
+  };
+
+  var signup = function(user) {
+
+    firebaseAuthRef.createUserWithEmailAndPassword(user.email, user.password)
+    .then(function(userData) {
+      console.log(userData);
+      login(user, true);
+      firebaseDBRef.child('emails').push(user.email);
+      firebaseUserRef.child(userData.uid).child('balance').set(100000);
+      firebaseUserRef.child(userData.uid).child('stocks').set(myStocksArrayService);
+
+      var stocksWithNotes = notesCacheService.keys();
+
+      stocksWithNotes.forEach(function(stockWithNotes) {
+        var notes = notesCacheService.get(stockWithNotes);
+
+        notes.forEach(function(note) {
+          firebaseUserRef.child(userData.uid).child('notes').child(note.ticker).push(note);
+        });
+      });
+    })
+    .catch(function(error) {
+      console.log("Error creating user:", error);
+      return false;
+    });
+  };
+
+  var logout = function() {
+    firebaseAuthRef.signOut();
+    notesCacheService.removeAll();
+    myStocksCacheService.removeAll();
+    $window.location.reload(true);
+    $rootScope.currentUser = '';
+  };
+
+  var updateStocks = function(stocks) {
+    firebaseUserRef.child(getUser().uid).child('stocks').set(stocks);
+  };
+
+  var updateNotes = function(ticker, notes) {
+    firebaseUserRef.child(getUser().uid).child('notes').child(ticker).remove();
+    notes.forEach(function(note) {
+      firebaseUserRef.child(getUser().uid).child('notes').child(note.ticker).push(note);
+    });
+  };
+
+  var getAccountBalance = function(authData){
+    var deferred = $q.defer();
+    var balance = 0;
+    if (authData === null){
+      balance = 1;
+      console.log("We Have No AuthData");
+      return deferred.promise;
+    }
+    firebaseUserRef.child(authData.uid).child('balance').once('value', function(snapshot) {
+      balance = snapshot.val();
+      console.log("We pulled");
+      console.log("User " + authData.email);
+      console.log("Balance: " + balance);
+      deferred.resolve(balance);
+    },
+    function(error) {
+      console.log("Firebase error –> balance" + error);
+      deferred.reject();
+    });
+    return deferred.promise;
+  };
+
+  var loadUserData = function(authData) {
+
+    firebaseUserRef.child(authData.uid).child('stocks').once('value', function(snapshot) {
+      var stocksFromDatabase = [];
+
+      snapshot.val().forEach(function(stock) {
+        var stockToAdd = {ticker: stock.ticker};
+        stocksFromDatabase.push(stockToAdd);
+      });
+
+      myStocksCacheService.put('myStocks', stocksFromDatabase);
+    },
+    function(error) {
+      console.log("Firebase error –> stocks" + error);
+    });
+
+    firebaseUserRef.child(authData.uid).child('notes').once('value', function(snapshot) {
+
+      snapshot.forEach(function(stocksWithNotes) {
+        var notesFromDatabase = [];
+        stocksWithNotes.forEach(function(note) {
+          notesFromDatabase.push(note.val());
+          var cacheKey = note.child('ticker').val();
+          notesCacheService.put(cacheKey, notesFromDatabase);
+        });
+      });
+    },
+    function(error) {
+      console.log("Firebase error –> notes: " + error);
+    });
+  };
+
+  var getUser = function() {
+    return firebaseAuthRef.currentUser;
+  };
+
+  if(getUser()) {
+    $rootScope.currentUser = getUser();
+  }
+
+  return {
+    login: login,
+    signup: signup,
+    logout: logout,
+    updateStocks: updateStocks,
+    updateNotes: updateNotes,
+    getUser: getUser,
+    getAccountBalance: getAccountBalance,
+  };
+})
+
 .factory('dateService', function($filter){
   var currentDate = function(){
     var d = new Date();
@@ -81,12 +255,14 @@ angular.module('LSEInvest.services', [])
 
     query = 'select * from yahoo.finance.historicaldata where symbol = "' + ticker + '" and startDate = "' + fromDate + '" and endDate = "' + todayDate + '"';
     url = 'http://query.yahooapis.com/v1/public/yql?q=' + encodeURIService.encode(query) + '&format=json&env=http://datatables.org/alltables.env';
+    url2 = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.historicaldata%20where%20symbol%20=%20%22" + ticker + "%22%20and%20startDate%20=%20%22" + fromDate + "%22%20and%20endDate%20=%20%22" + todayDate + "%22&format=json&diagnostics=true&env=store://datatables.org/alltableswithkeys";
+// added new url value as again encode service was producing an invalid URL request
 
     if(chartDataCache) {
       deferred.resolve(chartDataCache);
     }
     else {
-        $http.get(url)
+        $http.get(url2)
           .success(function(json) {
             var jsonData = json.query.results.quote;
 
@@ -190,7 +366,7 @@ angular.module('LSEInvest.services', [])
   return chartDataCache;
 })
 
-.factory('followStockService', function(myStocksArrayService, myStocksCacheService) {
+.factory('followStockService', function(myStocksArrayService, myStocksCacheService, userService) {
 
   return {
 
@@ -199,6 +375,10 @@ angular.module('LSEInvest.services', [])
 
       myStocksArrayService.push(stockToAdd);
       myStocksCacheService.put('myStocks', myStocksArrayService);
+
+      if(userService.getUser()) {
+        userService.updateStocks(myStocksArrayService);
+      }
     },
 
     unfollow: function(ticker) {
@@ -208,6 +388,10 @@ angular.module('LSEInvest.services', [])
           myStocksArrayService.splice(i, 1);
           myStocksCacheService.remove('myStocks');
           myStocksCacheService.put('myStocks', myStocksArrayService);
+
+          if(userService.getUser()) {
+            userService.updateStocks(myStocksArrayService);
+          }
 
           break;
         }
@@ -309,7 +493,7 @@ angular.module('LSEInvest.services', [])
 
       x2js = new X2JS(),
 
-      url = "http://finance.yaho.com/rss/headline?s=" + ticker;
+      url = "http://finance.yahoo.com/rss/headline?s=" + ticker;
 
       $http.get(url)
         .success(function(xml) {
@@ -329,7 +513,7 @@ angular.module('LSEInvest.services', [])
 })
 
 
-.factory('notesService', function(notesCacheService) {
+.factory('notesService', function(notesCacheService, userService) {
 
   return {
 
@@ -351,10 +535,10 @@ angular.module('LSEInvest.services', [])
 
       notesCacheService.put(ticker, stockNotes);
 
-      // if(userService.getUser()) {
-      //   var notes = notesCacheService.get(ticker);
-      //   userService.updateNotes(ticker, stockNotes);
-      // }
+      if(userService.getUser()) {
+        var notes = notesCacheService.get(ticker);
+        userService.updateNotes(ticker, stockNotes);
+      }
     },
 
     deleteNote: function(ticker, index) {
@@ -365,10 +549,10 @@ angular.module('LSEInvest.services', [])
       stockNotes.splice(index, 1);
       notesCacheService.put(ticker, stockNotes);
 
-      // if(userService.getUser()) {
-      //   var notes = notesCacheService.get(ticker);
-      //   userService.updateNotes(ticker, stockNotes);
-      // }
+      if(userService.getUser()) {
+        var notes = notesCacheService.get(ticker);
+        userService.updateNotes(ticker, stockNotes);
+      }
     }
   };
 })
@@ -379,10 +563,10 @@ angular.module('LSEInvest.services', [])
     var deferred = $q.defer(),
     query = 'select * from yahoo.finance.quotes where symbol IN ("' + ticker + '")',
     url = 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIService.encode(query) + '&format=json&env=http://datatables.org/alltables.env';
+    url2 = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22"+ ticker +"%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
+// added a second url variable after the first one started throwing errors.
 
-    console.log(url);
-
-    $http.get(url)
+    $http.get(url2)
       .success(function(json) {
         var jsonData = json.query.results.quote;
         deferred.resolve(jsonData);
@@ -395,12 +579,11 @@ angular.module('LSEInvest.services', [])
       return deferred.promise;
   };
 
-
-
   var getPriceData = function(ticker){
     var deferred = $q.defer(),
     cacheKey = ticker,
     url = "http://finance.yahoo.com/webservice/v1/symbols/" + ticker + "/quote?format=json&view=detail";
+
 
     $http.get(url)
       .success(function(json) {

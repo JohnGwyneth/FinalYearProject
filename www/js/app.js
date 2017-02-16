@@ -1,6 +1,7 @@
 
 angular.module('LSEInvest', [
   'ionic',
+  // 'firebase',
   'angular-cache',
   'LSEInvest.controllers',
   'LSEInvest.services',
@@ -43,6 +44,26 @@ angular.module('LSEInvest', [
         'menuContent': {
           templateUrl: 'templates/my-stocks.html',
           controller: 'MyStocksCtrl'
+        }
+      }
+    })
+
+    .state('app.openPositions', {
+      url: '/open-positions',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/open-positions.html',
+          controller: ''
+        }
+      }
+    })
+
+    .state('app.myAccount', {
+      url: '/my-account',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/my-account.html',
+          controller: 'TradeCtrl'
         }
       }
     })

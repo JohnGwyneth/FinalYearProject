@@ -1,13 +1,40 @@
 angular.module('LSEInvest.controllers', [])
 
 
-.controller('AppCtrl', ['$scope', 'modalService',
-  function($scope, modalService) {
+.controller('AppCtrl', ['$scope', 'modalService', 'userService',
+  function($scope, modalService, userService) {
+
     $scope.modalService = modalService;
 
-  //  $scope.logout = function() {
-  //    userService.logout();
-  //  };
+   $scope.logout = function() {
+     userService.logout();
+   };
+}])
+
+.controller('TradeCtrl', ['$scope', 'userService',
+  function($scope, userService) {
+
+    $scope.$on("$ionicView.afterEnter", function() {
+      $scope.getMyBalanceData();
+    });
+
+    $scope.getMyBalanceData = function(){
+      if (userService.getUser())
+      {
+        var user = userService.getUser();
+        var promise = userService.getAccountBalance(user);
+        $scope.accountBalance = 2;
+
+        promise.then(function(data){
+          $scope.accountBalance = data;
+          console.log("Collected Data " + data);
+        });
+      console.log("MADE IT HERE" );
+      }
+      else {
+        balance = "No User Found.";
+      }
+    };
 }])
 
 .controller('MyStocksCtrl', ['$scope', 'myStocksArrayService', 'stockDataService','stockPriceCacheService',
@@ -287,8 +314,25 @@ function getChartData() {
       modalService.closeModal();
       $state.go('app.stock', {stockTicker: ticker});
     };
+}])
 
 
+.controller('LoginSignupCtrl', ['$scope', 'modalService', 'userService',
+  function($scope, modalService, userService) {
+
+    $scope.user = {email: '', password: ''};
+
+    $scope.closeModal = function() {
+      modalService.closeModal();
+    };
+
+    $scope.signup = function(user) {
+      userService.signup(user);
+    };
+
+    $scope.login = function(user) {
+      userService.login(user);
+    };
 }])
 
 ;
