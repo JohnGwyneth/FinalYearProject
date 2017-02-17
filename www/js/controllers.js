@@ -23,7 +23,7 @@ angular.module('LSEInvest.controllers', [])
       {
         var user = userService.getUser();
         var promise = userService.getAccountBalance(user);
-        $scope.accountBalance = 2;
+        $scope.accountBalance = 0;
 
         promise.then(function(data){
           $scope.accountBalance = data;
@@ -64,8 +64,8 @@ angular.module('LSEInvest.controllers', [])
     };
 }])
 
-.controller('StockCtrl', ['$scope', '$stateParams', '$window', '$ionicPopup', 'stockDataService', 'dateService', 'chartDataService','notesService', 'newsService', 'followStockService',
-function($scope, $stateParams, $window, $ionicPopup, stockDataService, dateService, chartDataService, notesService, newsService, followStockService) {
+.controller('StockCtrl', ['$scope', '$stateParams', '$window', '$ionicPopup', 'stockDataService', 'dateService', 'chartDataService','notesService', 'newsService', 'followStockService', 'tradeService',
+function($scope, $stateParams, $window, $ionicPopup, stockDataService, dateService, chartDataService, notesService, newsService, followStockService, tradeService) {
   $scope.ticker = $stateParams.stockTicker;
   $scope.chartView = 4;
   $scope.following = followStockService.checkFollowing($scope.ticker);
@@ -110,6 +110,12 @@ function($scope, $stateParams, $window, $ionicPopup, stockDataService, dateServi
 
   $scope.chartViewFunc = function(n){
     $scope.chartView = n;
+  };
+
+  $scope.buyStock = function(){
+    console.log("STOCK CTRL, Data: " + $scope.stockDetailsData.Ask);
+    var stockPrice = $scope.stockDetailsData.Ask;
+    tradeService.openPosition(stockPrice);
   };
 
   $scope.addNote = function() {

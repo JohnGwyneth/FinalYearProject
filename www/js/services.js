@@ -74,9 +74,42 @@ angular.module('LSEInvest.services', [])
   return firebaseDBRef.child('users');
 })
 
-.factory('tradeService', function($firebase, firebaseDBRef, firebaseAuthRef, firebaseUserRef, userService ){
+.factory('tradeService', function(userService, firebaseUserRef, stockDataService){
 
+  var openPosition = function(stockPrice){
+    userData = userService.getUser();
+    var balance = 0;
+    var updatedBalance = 0;
+    var quantity = 1;
 
+    firebaseUserRef.child(userData.uid).child('balance').once('value', function(snapshot) {
+      balance = snapshot.val();
+      updatedBalance = balance - (quantity * stockPrice);
+
+      console.log("Trade Service: Pull Balance");
+      console.log("Testing Purchase, Balance = " + balance);
+      console.log("Stock Price: " + stockPrice);
+      console.log("Updated Balance = " + updatedBalance);
+
+      firebaseUserRef.child(userData.uid).child('balance').set(updatedBalance);
+
+    },
+    function(error) {
+      console.log("Firebase error –> balance" + error);
+    });
+
+    console.log("User " + userData.email);
+    // firebaseUserRef.child(userData.uid).child('balance').set();
+  };
+
+  var closePosition = function(){
+
+  };
+
+  return {
+    openPosition: openPosition,
+    closePosition: closePosition,
+  };
 
 })
 
