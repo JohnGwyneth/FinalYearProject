@@ -1,3 +1,55 @@
+/*Icons*/
+
+.custom-icon {
+  color : red;
+}
+
+/*Open Positions*/
+
+#open-positions .item-content {
+  padding: 5px 0px 5px 5px;
+}
+
+#open-positions h3 {
+  font-size: 4.75vmin;
+}
+
+#open-positions h6 {
+  font-size: 3vmin;
+  font-weight: 300;
+}
+
+#open-positions .stock-price-time {
+  padding-right: 10px;
+  text-align: right;
+}
+
+#open-positions .stock-ticker-name {
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+
+#open-positions .stock-price-time h3 {
+  font-weight: normal;
+}
+
+#open-positions .stock-change {
+  border-bottom-left-radius: 3px;
+  border-top-left-radius: 3px;
+  margin-right: -10px;
+}
+
+#open-positions .stock-change h3,
+#open-positions .stock-change h6 {
+  color: #fff;
+}
+
+#open-positions .inset-shadow {
+  -webkit-box-shadow: inset 0px 0px 15px rgba(0, 0, 0, .15);
+}
+
+
 
 /* My Stocks */
 

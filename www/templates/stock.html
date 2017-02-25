@@ -49,12 +49,12 @@
     </div>
 
 
-
+    <!-- Used to use DetailsData for prices but changed due to unreliablity -->
     <div class="card" id="market-data-card">
       <div class="item item-divider">Market Data <span class="last-trade">Last trade: {{stockPriceData.utctime | date:'h:mm a'}}</span></div>
       <div class="row row-center">
         <div class="col">Ask: </div>
-        <div class="col col-20">{{stockDetailsData.Ask | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{stockPriceData.price | shrinkNumber: 2}}</div>
         <div class="col">Bid: </div>
         <div class="col col-20">{{stockDetailsData.Bid | shrinkNumber: 2}}</div>
       </div>

@@ -53,7 +53,7 @@ angular.module('LSEInvest', [
       views: {
         'menuContent': {
           templateUrl: 'templates/open-positions.html',
-          controller: ''
+          controller: 'OpenPositionsCtrl'
         }
       }
     })

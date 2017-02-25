@@ -1,46 +1,29 @@
 <ion-view view-title="Open Positions" id="open-positions">
-
-
   <ion-content>
 
+    <ion-refresher
+      pulling-text="Pull to refresh..."
+      on-refresh="getOpenStockPositions()"
+      class="margin-auto"
+    ></ion-refresher>
+
     <ion-list>
-      <ion-item>
-        <div class="card">
-          <div class="item item-button-right">
-            Company Name
-          <button class="button button-light">
-            <i class="icon ion-ios-close-outline"></i>
-          </button>
-          </div>
-          <div class="col col-25 stock-price-time">
-            <h3>Result</h3>
-            <h6>Quantity</h6>
-          </div>
-        </div>
-      </ion-item>
-      <ion-item>
+      <ion-item ng-repeat="stock in openPositionsData">
         <div class="row row-center">
           <div class="col stock-ticker-name">
-            <h3>Company Name</h3>
+            <h3>{{stock.symbol}}</h3>
             <h6 ng-bind-html="::stock.name"></h6>
           </div>
           <div class="col col-25 stock-price-time">
-            <h3>Result</h3>
-            <h6>Quantity</h6>
+            <h3>{{stock.price | shrinkNumber:2}}</h3>
+            <h6>Current Price</h6>
+          </div>
+          <div class="col col-33 stock-change" ng-class="stock.change >= 0 ? 'background-green' : 'background-red'">
+            <h3><span ng-if="stock.change >= 0">+</span>{{stock.chg_percent | number:3}}%</h3>
+            <h6><span ng-if="stock.change >= 0">+</span>{{stock.change | shrinkNumber:2}}</h6>
           </div>
         </div>
-      </ion-item>
-      <ion-item>
-        <div class="row row-center">
-          <div class="col stock-ticker-name">
-            <h3>Total Result</h3>
-            <h6 ng-bind-html="::stock.name"></h6>
-          </div>
-          <div class="col col-25 stock-price-time">
-            <h3>Result</h3>
-          </div>
-        </div>
-      </ion-item>
-    </ion-list>
+
+        <ion-option-button class="button-light icon ion-close-round color-red inset-shadow" ng-click="closePosition(stock.symbol, stock.price); showSellPopup(stock.name, stock.price)"></ion-option-button>
   </ion-content>
 </ion-view>
