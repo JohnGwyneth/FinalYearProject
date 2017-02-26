@@ -76,20 +76,20 @@ angular.module('LSEInvest.services', [])
 
 .factory('tradeService', function($ionicPopup ,userService, firebaseUserRef, stockDataService, openPositionService){
 
-  var showBuyPopup = function(stockPrice, stockName) {
+  var showBuyPopup = function(stockPrice, stockName, transactionQuantity) {
     var alertPopup = $ionicPopup.alert({
       title: ' You Bought',
-      template: '1 '+ stockName + ' at ' + stockPrice
+      template: transactionQuantity + ' '+ stockName + ' at ' + stockPrice
     });
     alertPopup.then(function(res) {
       console.log('Pop up');
     });
   };
 
-  showInvalidBuyPopup = function(stockName) {
+  showInvalidBuyPopup = function(stockName, transactionQuantity) {
     var alertPopup = $ionicPopup.alert({
       title: 'Sorry!',
-      template: 'You do not have enough equity to buy, 1 '+ stockName
+      template: 'You do not have enough equity to buy, ' + transactionQuantity +' of '+ stockName
     });
     alertPopup.then(function(res) {
       console.log('Invalid Trade Pop Up');
@@ -97,18 +97,16 @@ angular.module('LSEInvest.services', [])
   };
 
 
-  var openPosition = function(stockPrice, ticker, stockName){
+  var openPosition = function(stockPrice, ticker, stockName, transactionQuantity, todayDate){
     userData = userService.getUser();
     var balance = 0;
     var updatedBalance = 0;
-    var quantity = 1;
-    var validTransaction = false;
 
     firebaseUserRef.child(userData.uid).child('balance').once('value', function(snapshot) {
       balance = snapshot.val();
 
-      if (balance > (quantity * stockPrice)) {
-        updatedBalance = balance - (quantity * stockPrice);
+      if (balance > (transactionQuantity * stockPrice)) {
+        updatedBalance = balance - (transactionQuantity * stockPrice);
 
         console.log("Trade Service: Pull Balance");
         console.log("Testing Purchase, Balance = " + balance);
@@ -116,11 +114,11 @@ angular.module('LSEInvest.services', [])
         console.log("Updated Balance = " + updatedBalance);
 
         firebaseUserRef.child(userData.uid).child('balance').set(updatedBalance);
-        openPositionService.open(ticker);
-        showBuyPopup(stockPrice, stockName);
+        openPositionService.open(ticker, stockPrice, transactionQuantity, todayDate);
+        showBuyPopup(stockPrice, stockName, transactionQuantity);
       }
       else {
-        showInvalidBuyPopup(stockName);
+        showInvalidBuyPopup(stockName, transactionQuantity);
         console.log("Error. You do not have enough equity to buy this share.");
         return;
       }
@@ -130,12 +128,11 @@ angular.module('LSEInvest.services', [])
     });
   };
 
-  var closePosition = function(stockPrice, ticker){
+  var closePosition = function(stockPrice, ticker, quantity){
 
     userData = userService.getUser();
     var balance = 0;
     var updatedBalance = 0;
-    var quantity = 1;
 
     firebaseUserRef.child(userData.uid).child('balance').once('value', function(snapshot) {
       balance = snapshot.val();
@@ -144,6 +141,7 @@ angular.module('LSEInvest.services', [])
       console.log("Trade Service: Pull Balance");
       console.log("Testing Sale, Balance = " + balance);
       console.log("Stock Price: " + stockPrice);
+      console.log("Stock Quantity: " + quantity);
       console.log("Updated Balance = " + updatedBalance);
 
 
@@ -164,7 +162,7 @@ angular.module('LSEInvest.services', [])
 
 })
 
-.factory('userService', function($q, $rootScope, $window, $timeout, firebaseDBRef, firebaseAuthRef, firebaseUserRef, myStocksArrayService, myStocksCacheService, notesCacheService, modalService, openPositionsArrayService, openPositionsCacheService) {
+.factory('userService', function($q, $rootScope, $window, $timeout, firebaseDBRef, firebaseAuthRef, firebaseUserRef, myStocksArrayService, myStocksCacheService, notesCacheService, modalService, openPositionsArrayService, openPositionsCacheService, reportArrayService, reportCacheService) {
 
   var login = function(user, signup) {
     var email = user.email;
@@ -227,6 +225,7 @@ angular.module('LSEInvest.services', [])
     notesCacheService.removeAll();
     myStocksCacheService.removeAll();
     openPositionsCacheService.removeAll();
+    reportCacheService.removeAll();
     $window.location.reload(true);
     $rootScope.currentUser = '';
   };
@@ -237,6 +236,10 @@ angular.module('LSEInvest.services', [])
 
   var updatePositions = function(stocks) {
     firebaseUserRef.child(getUser().uid).child('open-positions').set(stocks);
+  };
+
+  var updateReport = function(stocks) {
+    firebaseUserRef.child(getUser().uid).child('report').set(stocks);
   };
 
   var updateNotes = function(ticker, notes) {
@@ -288,7 +291,7 @@ angular.module('LSEInvest.services', [])
       var positionsFromDatabase = [];
 
       snapshot.val().forEach(function(stock) {
-        var positionToAdd = {ticker: stock.ticker};
+        var positionToAdd = {ticker: stock.ticker, quantity: stock.quantity, purchase_time: stock.purchase_time, purchase_price: stock.purchase_price};
         positionsFromDatabase.push(positionToAdd);
       });
 
@@ -297,6 +300,22 @@ angular.module('LSEInvest.services', [])
     function(error) {
       console.log("Firebase error –> open positions" + error);
     });
+
+    firebaseUserRef.child(authData.uid).child('report').once('value', function(snapshot) {
+      var reportsFromDatabase = [];
+
+      snapshot.val().forEach(function(stock) {
+        var reportToAdd = {ticker: stock.ticker, result: stock.result, quantity: stock.quantity, name: stock.name, date: stock.date, close_price: stock.close_price};
+        reportsFromDatabase.push(reportToAdd);
+      });
+
+      reportCacheService.put('reports', reportsFromDatabase);
+    },
+    function(error) {
+      console.log("Firebase error –> report" + error);
+    });
+
+
 
     firebaseUserRef.child(authData.uid).child('notes').once('value', function(snapshot) {
 
@@ -328,6 +347,7 @@ angular.module('LSEInvest.services', [])
     logout: logout,
     updateStocks: updateStocks,
     updatePositions: updatePositions,
+    updateReport: updateReport,
     updateNotes: updateNotes,
     getUser: getUser,
     getAccountBalance: getAccountBalance,
@@ -520,8 +540,8 @@ angular.module('LSEInvest.services', [])
 
   return {
 
-    open: function(ticker) {
-      var stockToAdd = {"ticker": ticker};
+    open: function(ticker, purchasePrice, quantity, timestamp) {
+      var stockToAdd = {"ticker": ticker, "purchase_price": purchasePrice, "quantity": quantity, "purchase_time": timestamp};
 
       openPositionsArrayService.push(stockToAdd);
       openPositionsCacheService.put('openPositions', openPositionsArrayService);
@@ -558,6 +578,24 @@ angular.module('LSEInvest.services', [])
     //   return false;
     // }
 
+  };
+})
+
+.factory('reportService', function(reportArrayService, reportCacheService, userService) {
+
+  return {
+
+    new: function(name, quantity, stockPrice, todayDate, ticker, result) {
+      var tradeToAdd = {'name': name, 'quantity': quantity, 'close_price': stockPrice, 'date': todayDate, 'ticker': ticker, 'result': result};
+
+      reportArrayService.push(tradeToAdd);
+      reportCacheService.put('reports', reportArrayService);
+
+      if(userService.getUser()) {
+        console.dir(reportArrayService);
+        userService.updateReport(reportArrayService);
+      }
+    },
   };
 })
 
@@ -623,6 +661,31 @@ angular.module('LSEInvest.services', [])
   };
 })
 
+.factory('fillReportCacheService', function(CacheFactory) {
+
+  var reportCache;
+
+  if(!CacheFactory.get('reportCache')) {
+    reportCache = CacheFactory('reportCache', {
+      storageMode: 'localStorage'
+    });
+  }
+  else {
+    reportCache = CacheFactory.get('reporCache');
+  }
+
+  var fillReportCache = function() {
+
+    var reportArray = [];
+
+    reportCache.put('reports', reportArray);
+  };
+
+  return {
+    fillReportCache: fillReportCache
+  };
+})
+
 .factory('myStocksCacheService', function(CacheFactory) {
 
   var myStocksCache = CacheFactory.get('myStocksCache');
@@ -637,6 +700,13 @@ angular.module('LSEInvest.services', [])
   return openPositionsCache;
 })
 
+.factory('reportCacheService', function(CacheFactory) {
+
+  var reportCache = CacheFactory.get('reportCache');
+
+  return reportCache;
+})
+
 .factory('openPositionsArrayService', function(fillOpenPositionsCacheService, openPositionsCacheService) {
 
   if(!openPositionsCacheService.info('openPositions')) {
@@ -646,6 +716,17 @@ angular.module('LSEInvest.services', [])
   var openPositions = openPositionsCacheService.get('openPositions');
 
   return openPositions;
+})
+
+.factory('reportArrayService', function(fillReportCacheService, reportCacheService) {
+
+  if(!reportCacheService.info('reports')) {
+    fillReportCacheService.fillReportCache();
+  }
+
+  var reports = reportCacheService.get('reports');
+
+  return reports;
 })
 
 .factory('myStocksArrayService', function(fillMyStocksCacheService, myStocksCacheService) {

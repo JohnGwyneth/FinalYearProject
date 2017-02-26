@@ -24,22 +24,28 @@
     </ion-header-bar>
     <ion-content>
       <ion-list>
-        <ion-item menu-close ui-sref="app.myStocks">
+        <ion-item class="item-icon-left" menu-close ui-sref="app.myStocks">
+          <i class="icon ion-arrow-graph-up-right"></i>
           My Stocks
         </ion-item>
-        <ion-item menu-close ui-sref="app.myAccount">
+        <ion-item class="item-icon-left" menu-close ui-sref="app.myAccount">
+          <i class="icon ion-clipboard"></i>
           My Account
         </ion-item>
-        <ion-item menu-close ui-sref="app.openPositions">
+        <ion-item class="item-icon-left" menu-close ui-sref="app.openPositions">
+          <i class="icon ion-arrow-swap"></i>
           Open Positions
         </ion-item>
-        <ion-item menu-close ng-hide="currentUser" ng-click="modalService.openModal(2)">
+        <ion-item class="item-icon-left" menu-close ng-hide="currentUser" ng-click="modalService.openModal(2)">
+          <i class="icon ion-person"></i>
           Log In
         </ion-item>
-        <ion-item menu-close ng-hide="currentUser" ng-click="modalService.openModal(3)">
+        <ion-item class="item-icon-left" menu-close ng-hide="currentUser" ng-click="modalService.openModal(3)">
+          <i class="icon ion-person-add"></i>
           Sign Up
         </ion-item>
-        <ion-item menu-close ng-click="modalService.openModal(1)">
+        <ion-item class="item-icon-left" menu-close ng-click="modalService.openModal(1)">
+          <i class="icon icon-small ion-ios-search"></i>
           Search
         </ion-item>
       </ion-list>

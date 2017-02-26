@@ -1,26 +1,37 @@
 <ion-view view-title="My Account" id="my-account">
   <ion-content>
-
-    <h6>Account Details</h6>
     <div class="card">
       <div class="item item-divider">
-        I'm a Header in a Card!
+        Account Details
       </div>
       <div class="row row-center">
         <div class="col">Available Equity: </div>
-        <div class="col col-20">{{accountBalance | number:2}}</div>
+        <div class="col col-5">{{accountBalance | number:2}}</div>
+      </div>
+      <div class="row row-center">
+        <div class="col">User: </div>
+        <div class="col col-5">{{user}}</div>
       </div>
     </div>
 
-    <h6>Trade History</h6>
+    <div class="card" id="reports-card">
+      <div class="item item-divider">Trade History</div>
+      <a class="item item-icon-right" ng-repeat="trade in reportsData track by $index">
+        <h2>{{trade.name}}</h2>
+        <h6>{{trade.date | date:'M/d/yy'}}</h6>
+        <div class="row row-center">
+          <div class="col col-15">Close Price: </div>
+          <div class="col" style="font-size: 3.75vmin; font-weight: bolder;">{{trade.close_price | shrinkNumber: 2}}</div>
+          <div class="col">Quantity: </div>
+          <div class="col col-20">{{trade.quantity}}</div>
+        </div>
+        <div class="row row-center">
 
-    <div class="card">
-      <div class="item item-divider">
-        I'm a Header in a Card!
+          <div class="col col-5 stock-change" ng-class="trade.result >= 0 ? 'background-green' : 'background-red'">
+            <h3>Result: <span ng-if="trade.result >= 0">+</span>{{ trade.result | number:2}}</h3>
+          </div>
       </div>
-      <div class="item item-text-wrap">
-        This is a basic Card with some text.
-      </div>
+      </a>
     </div>
 
   </ion-content>

@@ -4,15 +4,15 @@ angular.module('LSEInvest.controllers', [])
 .controller('AppCtrl', ['$scope', 'modalService', 'userService',
   function($scope, modalService, userService) {
 
-    $scope.modalService = modalService;
+   $scope.modalService = modalService;
 
    $scope.logout = function() {
      userService.logout();
    };
 }])
 
-.controller('TradeCtrl', ['$scope', 'userService',
-  function($scope, userService) {
+.controller('AccountCtrl', ['$scope', 'userService', 'reportArrayService',
+  function($scope, userService, reportArrayService) {
 
     $scope.$on("$ionicView.afterEnter", function() {
       $scope.getMyBalanceData();
@@ -22,6 +22,7 @@ angular.module('LSEInvest.controllers', [])
       if (userService.getUser())
       {
         var user = userService.getUser();
+        $scope.user = user.email;
         var promise = userService.getAccountBalance(user);
         $scope.accountBalance = 0;
 
@@ -29,16 +30,22 @@ angular.module('LSEInvest.controllers', [])
           $scope.accountBalance = data;
           console.log("Collected Data " + data);
         });
-      console.log("MADE IT HERE" );
       }
       else {
         balance = "No User Found.";
       }
+
+      $scope.reportsData = [];
+      reportArrayService.forEach(function(trade){
+        console.log("Loading Reports.");
+        $scope.reportsData.push(trade);
+
+      });
     };
 }])
 
-.controller('OpenPositionsCtrl', ['$scope', '$ionicPopup', 'userService', 'openPositionsArrayService', 'stockDataService', 'stockPriceCacheService', 'openPositionService', 'tradeService',
-  function($scope, $ionicPopup, userService, openPositionsArrayService, stockDataService, stockPriceCacheService, openPositionService, tradeService) {
+.controller('OpenPositionsCtrl', ['$scope', '$ionicPopup', 'userService', 'openPositionsArrayService', 'stockDataService', 'stockPriceCacheService', 'openPositionService', 'tradeService', 'dateService', 'reportService',
+  function($scope, $ionicPopup, userService, openPositionsArrayService, stockDataService, stockPriceCacheService, openPositionService, tradeService, dateService, reportService) {
 
     $scope.$on("$ionicView.afterEnter", function() {
       $scope.getOpenStockPositions();
@@ -47,31 +54,51 @@ angular.module('LSEInvest.controllers', [])
     $scope.getOpenStockPositions = function(){
       openPositionsArrayService.forEach(function(stock) {
         console.log("Testing 2");
+        console.dir(stock);
+        console.log("Quantity: " + stock.quantity);
 
         var promise = stockDataService.getPriceData(stock.ticker);
 
         $scope.openPositionsData = [];
+        $scope.stocksData = [stock];
+        $scope.allData = {};
+
 
         promise.then(function(data) {
-          $scope.openPositionsData.push(stockPriceCacheService.get(data.symbol));
+          var live_data = stockPriceCacheService.get(data.symbol);
+
+          $scope.current = live_data.price*stock.quantity;
+          $scope.purchase = stock.purchase_price*stock.quantity;
+          $scope.current_result = $scope.current - $scope.purchase;
+
+          var result = {'result': $scope.current_result};
+
+          var merge = Object.assign(live_data, stock, result);
+          $scope.openPositionsData.push(merge);
+          console.dir($scope.openPositionsData);
+
         });
       });
       $scope.$broadcast('scroll.refreshComplete');
     };
 
-    $scope.closePosition = function(ticker, stockPrice) {
+    $scope.closePosition = function(ticker, stockPrice, quantity, result, name) {
 
       console.log("STOCK CTRL, Data: " + stockPrice);
-      tradeService.closePosition(stockPrice, $scope.ticker);
+      console.log("POP UP LOG: " + quantity);
+      tradeService.closePosition(stockPrice, $scope.ticker, quantity);
 
+      $scope.todayDate = dateService.currentDate();
+
+      reportService.new(name, quantity, stockPrice, $scope.todayDate, ticker, result);
       openPositionService.close(ticker);
       $scope.getOpenStockPositions();
     };
 
-    $scope.showSellPopup = function(ticker, stockPrice) {
+    $scope.showSellPopup = function(name, stockPrice, stockQuantity) {
       var alertPopup = $ionicPopup.alert({
         title: ' You Sold',
-        template: '1 '+ ticker + ' at ' + stockPrice
+        template: '' + stockQuantity +  ' '+ name + ' at ' + stockPrice
       });
       alertPopup.then(function(res) {
         console.log('Pop up');
@@ -117,6 +144,7 @@ function($scope, $stateParams, $window, $ionicPopup, stockDataService, dateServi
   $scope.todayDate = dateService.currentDate();
 
   $scope.stockNotes = [];
+  $scope.transaction = {};
 
 
   console.log(dateService.currentDate());
@@ -156,15 +184,23 @@ function($scope, $stateParams, $window, $ionicPopup, stockDataService, dateServi
     $scope.chartView = n;
   };
 
-  $scope.buyStock = function(){
+  $scope.buyStock = function(stockQuantity){
+
+    var transactionQuantity = 1;
+    if ($scope.transaction.quantity > 1) {
+      transactionQuantity = $scope.transaction.quantity;
+    }
+
+    console.log("QUANTITY VALUE: " + transactionQuantity);
     console.log("STOCK CTRL, Data: " + $scope.stockDetailsData.Ask);
     console.log("Using Price Data:" + $scope.stockPriceData.price);
     // var stockPrice = $scope.stockDetailsData.Ask;
     var stockPrice = $scope.stockPriceData.price;
     var stockName = $scope.stockDetailsData.Name;
-    tradeService.openPosition(stockPrice, $scope.ticker, stockName);
+    tradeService.openPosition(stockPrice, $scope.ticker, stockName, transactionQuantity, $scope.todayDate);
 
   };
+
 
   $scope.addNote = function() {
       $scope.note = {title: 'Note', body: '', date: $scope.todayDate, ticker: $scope.ticker};

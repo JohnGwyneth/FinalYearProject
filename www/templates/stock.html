@@ -46,6 +46,12 @@
 
     <div class="card" id="stock-buy">
       <div class="item item-divider">Buy <span ng-click="buyStock()" class="buy-stock">Buy <i class="icon ion-ios-plus"></i></span></div>
+      <label class="item item-input">
+        <span class="col col-15 input-label">Quantity</span>
+        <input type="tel" placeholder="1" value="1" min="0" max="1000" ng-model="transaction.quantity">
+        <div class="col">Total Price: </div>
+        <div class="col col-20">{{stockPriceData.price * transaction.quantity | shrinkNumber: 2}}</div>
+      </label>
     </div>
 
 

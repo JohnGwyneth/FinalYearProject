@@ -4,6 +4,37 @@
   color : red;
 }
 
+/*My Account*/
+#reports-card {
+  font-size: 2vmin;
+  color: #222;
+}
+
+#reports-card .col-20 {
+  font-size: 3.75vmin;
+  font-weight: bolder;
+}
+
+
+#reports-card h2 {
+  font-weight: 400;
+  white-space: normal;
+}
+
+#reports-card .stock-change {
+  border-bottom-left-radius: 3px;
+  border-top-left-radius: 3px;
+  margin-right: 200px;
+}
+
+#reports-card .stock-change h3,
+#reports-card .stock-change h6 {
+  color: #fff;
+}
+
+
+
+
 /*Open Positions*/
 
 #open-positions .item-content {
@@ -153,6 +184,13 @@
   padding: 0 5px;
 }
 
+#stock-buy .col-20 {
+  font-weight: bolder;
+}
+
+#stock-buy .col-20:last-of-type {
+  text-align: left;
+}
 
 /* Notes card  */
 

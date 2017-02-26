@@ -63,7 +63,7 @@ angular.module('LSEInvest', [
       views: {
         'menuContent': {
           templateUrl: 'templates/my-account.html',
-          controller: 'TradeCtrl'
+          controller: 'AccountCtrl'
         }
       }
     })
