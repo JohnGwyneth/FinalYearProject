@@ -1,10 +1,22 @@
 angular.module('LSEInvest.controllers', [])
 
 
-.controller('AppCtrl', ['$scope', 'modalService', 'userService',
-  function($scope, modalService, userService) {
+.controller('AppCtrl', ['$scope', 'modalService', 'userService', '$cordovaInAppBrowser',
+  function($scope, modalService, userService, $cordovaInAppBrowser) {
 
    $scope.modalService = modalService;
+
+   $scope.societyLink = "http://investmentsociety.co.uk/";
+
+   $scope.openWindow = function(link) {
+       var inAppBrowserOptions = {
+         location: 'yes',
+         clearcache: 'yes',
+         toolbar: 'yes'
+       };
+
+       $cordovaInAppBrowser.open(link, '_blank', inAppBrowserOptions);
+     };
 
    $scope.logout = function() {
      userService.logout();
@@ -27,7 +39,7 @@ angular.module('LSEInvest.controllers', [])
     };
 
   $scope.items = learningService.getContent();
-  
+
 }])
 
 .controller('AccountCtrl', ['$scope', 'userService', 'reportArrayService',
