@@ -74,6 +74,33 @@ angular.module('LSEInvest.services', [])
   return firebaseDBRef.child('users');
 })
 
+
+.factory('learningService', function() {
+
+  var getContent = function() {
+    var items = [];
+    items[0] = {"Title": "What is Ask and Bid?", "Text": "Ask is the price a seller is willing to accept for a security, which is often referred to as the offer price. Along with the price, the ask quote might also stipulate the amount of the security available to be sold at that price. Bid is the price a buyer is willing to pay for a security, and the ask will always be higher than the bid."};
+    items[1] = {"Title": "What is Prev. Close?", "Text": "A security's closing price on the preceding day of trading. Previous close can refer to the prior day's value of a stock, bond, commodity, futures or option contract, market index, or any other security. By comparing a security's closing price from one day to the next, investors can see how the security's price has changed over time."};
+    items[2] = {"Title": "What is the Open Price?", "Text": "The opening price is the price at which a security first trades upon the opening of an exchange on a given trading day; for example, the New York Stock Exchange opens at precisely 9:30 a.m. Eastern. The price of the first trade for any listed stock is its daily opening price."};
+    items[3] = {"Title": "What is Day High and Low?", "Text": "A security's intraday high/low trading price. Today's high is the highest price at which a stock traded during the course of the day. Today's low is the lowest price at which a stock traded during the course of the day."};
+    items[4] = {"Title": "What is a 52w High/Low?", "Text": "A 52-week high/low is the highest and lowest price that a stock has traded at during the previous year. Many traders and investors view the 52-week high or low as an important factor in determining a stock's current value and predicting future price movement. Investors may show increased interest as price nears either the high or the low."};
+    items[5] = {"Title": "What is Volume?", "Text": "Volume is the number of shares or contracts traded in a security or an entire market during a given period of time. For every buyer, there is a seller, and each transaction contributes to the count of total volume. That is, when buyers and sellers agree to make a transaction at a certain price, it is considered one transaction."};
+    items[6] = {"Title": "What is the Avg. Volume?", "Text": "The average daily trading volume is the amount of individual securities traded in a day on average over a specified period of time. Trading activity relates to the liquidity of a security, as a result average daily trading volume can have an effect on the price of the security."};
+    items[7] = {"Title": "What is the Market Cap?", "Text": "Market capitalization refers the total dollar market value of a company's outstanding shares. Commonly referred to as 'market cap', it is calculated by multiplying a company's shares outstanding by the current market price of one share. The investment community uses this figure to determine a company's size, as opposed to using sales or total asset figures."};
+    items[8] = {"Title": "What is EBITDA?", "Text": "EBITDA stands for earnings before interest, taxes, depreciation and amortization. EBITDA is one indicator of a company's financial performance and is used as a proxy for the earning potential of a business, although doing so has its drawbacks. Further, EBITDA strips out the cost of debt capital and its tax effects by adding back interest and taxes to earnings."};
+    items[9] = {"Title": "P/E Ratio: What is It?", "Text": "P/E is short for the ratio of a companys share price to its per-share earnings. As the name implies, to calculate the P/E, you simply take the current stock price of a company and divide by its earnings per share (EPS)."};
+    items[10] = {"Title": "What is EPS?", "Text": "Earnings per share (EPS) is the portion of a company's profit allocated to each outstanding share of common stock. Earnings per share serves as an indicator of a company's profitability."};
+
+    return items;
+  };
+
+  return {
+    getContent: getContent,
+  };
+
+})
+
+
 .factory('tradeService', function($ionicPopup ,userService, firebaseUserRef, stockDataService, openPositionService){
 
   var showBuyPopup = function(stockPrice, stockName, transactionQuantity) {

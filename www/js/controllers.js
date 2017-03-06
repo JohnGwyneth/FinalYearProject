@@ -11,6 +11,25 @@ angular.module('LSEInvest.controllers', [])
    };
 }])
 
+.controller('LearningHubCtrl', ['$scope', 'learningService',
+  function($scope, learningService) {
+
+    $scope.toggleItem = function(item) {
+      if ($scope.isItemShown(item)) {
+        $scope.shownItem = null;
+      } else {
+        $scope.shownItem = item;
+      }
+    };
+
+    $scope.isItemShown = function(item) {
+      return $scope.shownItem === item;
+    };
+
+  $scope.items = learningService.getContent();
+  
+}])
+
 .controller('AccountCtrl', ['$scope', 'userService', 'reportArrayService',
   function($scope, userService, reportArrayService) {
 
@@ -135,8 +154,8 @@ angular.module('LSEInvest.controllers', [])
     };
 }])
 
-.controller('StockCtrl', ['$scope', '$stateParams', '$window', '$ionicPopup', 'stockDataService', 'dateService', 'chartDataService','notesService', 'newsService', 'followStockService', 'tradeService',
-function($scope, $stateParams, $window, $ionicPopup, stockDataService, dateService, chartDataService, notesService, newsService, followStockService, tradeService) {
+.controller('StockCtrl', ['$scope', '$stateParams', '$window', '$ionicPopup', '$cordovaInAppBrowser', 'stockDataService', 'dateService', 'chartDataService','notesService', 'newsService', 'followStockService', 'tradeService',
+function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stockDataService, dateService, chartDataService, notesService, newsService, followStockService, tradeService) {
   $scope.ticker = $stateParams.stockTicker;
   $scope.chartView = 4;
   $scope.following = followStockService.checkFollowing($scope.ticker);
@@ -170,13 +189,13 @@ function($scope, $stateParams, $window, $ionicPopup, stockDataService, dateServi
     };
 
   $scope.openWindow = function(link) {
-      // var inAppBrowserOptions = {
-      //   location: 'yes',
-      //   clearcache: 'yes',
-      //   toolbar: 'yes'
-      // };
-      //
-      // $cordovaInAppBrowser.open(link, '_blank', inAppBrowserOptions);
+      var inAppBrowserOptions = {
+        location: 'yes',
+        clearcache: 'yes',
+        toolbar: 'yes'
+      };
+
+      $cordovaInAppBrowser.open(link, '_blank', inAppBrowserOptions);
     };
 
 

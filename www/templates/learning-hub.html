@@ -1,0 +1,15 @@
+<ion-view view-title="Learning Hub" id="learning-hub">
+  <ion-content>
+
+    <!-- <p>Welcome to the Learning Hub! Find help below...</p> -->
+    <ion-list>
+      <ion-item ng-repeat="item in items" class="item item-text-wrap item-icon-right" ng-click="toggleItem(item)">
+        <div ng-class="isItemShown(item) ? 'item-expand active' : 'item-expand inactive'">
+          <h3>{{item.Title}}</h3>
+          <br>
+          <p>{{item.Text}}</p>
+        </div>
+        <i ng-class="isItemShown(item) ? 'icon ion-chevron-down icon-accessory' : 'icon ion-chevron-right icon-accessory'"></i>
+      </ion-item>
+    </ion-list>
+  </ion-content>

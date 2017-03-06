@@ -3,6 +3,7 @@ angular.module('LSEInvest', [
   'ionic',
   // 'firebase',
   'angular-cache',
+  'ngCordova',
   'LSEInvest.controllers',
   'LSEInvest.services',
   'LSEInvest.filters',
@@ -54,6 +55,16 @@ angular.module('LSEInvest', [
         'menuContent': {
           templateUrl: 'templates/open-positions.html',
           controller: 'OpenPositionsCtrl'
+        }
+      }
+    })
+
+    .state('app.learningHub', {
+      url: '/learning-hub',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/learning-hub.html',
+          controller: 'LearningHubCtrl'
         }
       }
     })
