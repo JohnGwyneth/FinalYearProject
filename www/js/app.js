@@ -39,15 +39,16 @@ angular.module('LSEInvest', [
     controller: 'AppCtrl'
   })
 
-    .state('app.myStocks', {
+    .state('app.favouriteStocks', {
       url: '/my-stocks',
       views: {
         'menuContent': {
           templateUrl: 'templates/my-stocks.html',
-          controller: 'MyStocksCtrl'
+          controller: 'FavouriteStocksCtrl'
         }
       }
     })
+    
 
     .state('app.openPositions', {
       url: '/open-positions',
@@ -88,6 +89,6 @@ angular.module('LSEInvest', [
       }
     }
   });
-  // if none of the above states are matched, use this as the fallback
+
   $urlRouterProvider.otherwise('/app/my-stocks');
 });

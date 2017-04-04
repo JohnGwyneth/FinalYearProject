@@ -1,5 +1,9 @@
 <ion-view view-title="My Account" id="my-account">
+
+
   <ion-content>
+
+
     <div class="card">
       <div class="item item-divider">
         Account Details
@@ -11,8 +15,13 @@
       <div class="row row-center">
         <div class="col">User: </div>
         <div class="col col-5">{{user}}</div>
+      </div><div class="row row-center">
+        <div class="col">Profit/Loss: </div>
+        <div class="col col-5"><span ng-if="totalResult >= 0">+</span>{{ totalResult | number:2}}</div>
       </div>
     </div>
+    </div>
+
 
     <div class="card" id="reports-card">
       <div class="item item-divider">Trade History</div>
@@ -26,8 +35,7 @@
           <div class="col col-20">{{trade.quantity}}</div>
         </div>
         <div class="row row-center">
-
-          <div class="col col-5 stock-change" ng-class="trade.result >= 0 ? 'background-green' : 'background-red'">
+          <div class="col col-5 instrument-change" ng-class="trade.result >= 0 ? 'background-green' : 'background-red'">
             <h3>Result: <span ng-if="trade.result >= 0">+</span>{{ trade.result | number:2}}</h3>
           </div>
       </div>

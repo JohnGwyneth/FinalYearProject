@@ -25,7 +25,13 @@
   color: #222;
 }
 
+
 #reports-card .col-20 {
+  font-size: 3.75vmin;
+  font-weight: bolder;
+}
+
+#result-card h3 {
   font-size: 3.75vmin;
   font-weight: bolder;
 }
@@ -36,14 +42,15 @@
   white-space: normal;
 }
 
-#reports-card .stock-change {
+#reports-card .instrument-change {
   border-bottom-left-radius: 3px;
   border-top-left-radius: 3px;
   margin-right: 200px;
 }
 
-#reports-card .stock-change h3,
-#reports-card .stock-change h6 {
+#reports-card .instrument-change h3,
+#result-card .instrument-change h3,
+#reports-card .instrument-change h6 {
   color: #fff;
 }
 
@@ -65,29 +72,29 @@
   font-weight: 300;
 }
 
-#open-positions .stock-price-time {
+#open-positions .instrument-price-time {
   padding-right: 10px;
   text-align: right;
 }
 
-#open-positions .stock-ticker-name {
+#open-positions .instrument-ticker-name {
   overflow: hidden;
   text-align: left;
   text-overflow: ellipsis;
 }
 
-#open-positions .stock-price-time h3 {
+#open-positions .instrument-price-time h3 {
   font-weight: normal;
 }
 
-#open-positions .stock-change {
+#open-positions .instrument-change {
   border-bottom-left-radius: 3px;
   border-top-left-radius: 3px;
   margin-right: -10px;
 }
 
-#open-positions .stock-change h3,
-#open-positions .stock-change h6 {
+#open-positions .instrument-change h3,
+#open-positions .instrument-change h6 {
   color: #fff;
 }
 
@@ -112,29 +119,29 @@
   font-weight: 300;
 }
 
-#my-stocks .stock-price-time {
+#my-stocks .instrument-price-time {
   padding-right: 10px;
   text-align: right;
 }
 
-#my-stocks .stock-ticker-name {
+#my-stocks .instrument-ticker-name {
   overflow: hidden;
   text-align: left;
   text-overflow: ellipsis;
 }
 
-#my-stocks .stock-price-time h3 {
+#my-stocks .instrument-price-time h3 {
   font-weight: normal;
 }
 
-#my-stocks .stock-change {
+#my-stocks .instrument-change {
   border-bottom-left-radius: 3px;
   border-top-left-radius: 3px;
   margin-right: -10px;
 }
 
-#my-stocks .stock-change h3,
-#my-stocks .stock-change h6 {
+#my-stocks .instrument-change h3,
+#my-stocks .instrument-change h6 {
   color: #fff;
 }
 
@@ -165,25 +172,25 @@
 
 /* News card */
 
-#stock-news .icon {
+#stock-newsfeed .icon {
   color: #ccc;
   font-size: 11pt;
   right: 0;
 }
 
-#stock-news h2 {
+#stock-newsfeed h2 {
   font-weight: 400;
   white-space: normal;
 }
 
-#stock-news p {
+#stock-newsfeed p {
   color: #222;
   font-size: 9pt;
   margin: 10px auto 0;
   white-space: normal;
 }
 
-#stock-news .item-icon-right {
+#stock-newsfeed .item-icon-right {
   padding-right: 30px;
 }
 
@@ -287,7 +294,7 @@
   line-height: 32pt;
 }
 
-#stock-change {
+#instrument-change {
   font-size: 4vmin;
   font-weight: bolder;
   float: right;

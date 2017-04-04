@@ -189,7 +189,7 @@ angular.module('LSEInvest.services', [])
 
 })
 
-.factory('userService', function($q, $rootScope, $window, $timeout, firebaseDBRef, firebaseAuthRef, firebaseUserRef, myStocksArrayService, myStocksCacheService, notesCacheService, modalService, openPositionsArrayService, openPositionsCacheService, reportArrayService, reportCacheService) {
+.factory('userService', function($q, $rootScope, $window, $timeout, firebaseDBRef, firebaseAuthRef, firebaseUserRef, favouriteStocksArrayService, favouriteStocksCacheService, notesCacheService, modalService, openPositionsArrayService, openPositionsCacheService, reportArrayService, reportCacheService) {
 
   var login = function(user, signup) {
     var email = user.email;
@@ -203,7 +203,7 @@ angular.module('LSEInvest.services', [])
           modalService.closeModal();
         }
         else {
-          myStocksCacheService.removeAll();
+          favouriteStocksCacheService.removeAll();
           notesCacheService.removeAll();
 
           loadUserData(getUser());
@@ -228,7 +228,7 @@ angular.module('LSEInvest.services', [])
       login(user, true);
       firebaseDBRef.child('emails').push(user.email);
       firebaseUserRef.child(userData.uid).child('balance').set(100000);
-      firebaseUserRef.child(userData.uid).child('stocks').set(myStocksArrayService);
+      firebaseUserRef.child(userData.uid).child('stocks').set(favouriteStocksArrayService);
       firebaseUserRef.child(userData.uid).child('open-positions').set(openPositionsArrayService);
 
       var stocksWithNotes = notesCacheService.keys();
@@ -250,14 +250,14 @@ angular.module('LSEInvest.services', [])
   var logout = function() {
     firebaseAuthRef.signOut();
     notesCacheService.removeAll();
-    myStocksCacheService.removeAll();
+    favouriteStocksCacheService.removeAll();
     openPositionsCacheService.removeAll();
     reportCacheService.removeAll();
     $window.location.reload(true);
     $rootScope.currentUser = '';
   };
 
-  var updateStocks = function(stocks) {
+  var updateFavouriteStocks = function(stocks) {
     firebaseUserRef.child(getUser().uid).child('stocks').set(stocks);
   };
 
@@ -304,11 +304,11 @@ angular.module('LSEInvest.services', [])
       var stocksFromDatabase = [];
 
       snapshot.val().forEach(function(stock) {
-        var stockToAdd = {ticker: stock.ticker};
-        stocksFromDatabase.push(stockToAdd);
+        var addStock = {ticker: stock.ticker};
+        stocksFromDatabase.push(addStock);
       });
 
-      myStocksCacheService.put('myStocks', stocksFromDatabase);
+      favouriteStocksCacheService.put('favouriteStocks', stocksFromDatabase);
     },
     function(error) {
       console.log("Firebase error –> stocks" + error);
@@ -347,11 +347,11 @@ angular.module('LSEInvest.services', [])
     firebaseUserRef.child(authData.uid).child('notes').once('value', function(snapshot) {
 
       snapshot.forEach(function(stocksWithNotes) {
-        var notesFromDatabase = [];
+        var notesFromFirebase = [];
         stocksWithNotes.forEach(function(note) {
-          notesFromDatabase.push(note.val());
+          notesFromFirebase.push(note.val());
           var cacheKey = note.child('ticker').val();
-          notesCacheService.put(cacheKey, notesFromDatabase);
+          notesCacheService.put(cacheKey, notesFromFirebase);
         });
       });
     },
@@ -372,7 +372,7 @@ angular.module('LSEInvest.services', [])
     login: login,
     signup: signup,
     logout: logout,
-    updateStocks: updateStocks,
+    updateFavouriteStocks: updateFavouriteStocks,
     updatePositions: updatePositions,
     updateReport: updateReport,
     updateNotes: updateNotes,
@@ -398,17 +398,14 @@ angular.module('LSEInvest.services', [])
   };
 })
 
-.factory('chartDataService', function($q, $http, encodeURIService, chartDataCacheService){
-  var getHistoricalData = function(ticker, fromDate, todayDate){
+.factory('chartDataRetrievalService', function($q, $http, chartDataCacheService){
+  var getStocksHistoricalData = function(ticker, fromDate, todayDate){
     var deferred = $q.defer(),
 
     cacheKey = ticker,
     chartDataCache = chartDataCacheService.get(cacheKey),
 
-    query = 'select * from yahoo.finance.historicaldata where symbol = "' + ticker + '" and startDate = "' + fromDate + '" and endDate = "' + todayDate + '"';
-    url = 'http://query.yahooapis.com/v1/public/yql?q=' + encodeURIService.encode(query) + '&format=json&env=http://datatables.org/alltables.env';
     url2 = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.historicaldata%20where%20symbol%20=%20%22" + ticker + "%22%20and%20startDate%20=%20%22" + fromDate + "%22%20and%20endDate%20=%20%22" + todayDate + "%22&format=json&diagnostics=true&env=store://datatables.org/alltableswithkeys";
-// added new url value as again encode service was producing an invalid URL request
 
     if(chartDataCache) {
       deferred.resolve(chartDataCache);
@@ -416,23 +413,23 @@ angular.module('LSEInvest.services', [])
     else {
         $http.get(url2)
           .success(function(json) {
-            var jsonData = json.query.results.quote;
+            var json_data = json.query.results.quote;
 
             var priceData = [],
             volumeData = [];
 
-            jsonData.forEach(function(dayDataObject) {
+            json_data.forEach(function(dataObject) {
 
-              var dateToMillis = dayDataObject.Date,
-              date = Date.parse(dateToMillis),
-              price = parseFloat(Math.round(dayDataObject.Close * 100) / 100).toFixed(3),
-              volume = dayDataObject.Volume,
+              var convertDate = dataObject.Date,
+              date = Date.parse(convertDate),
+              price = parseFloat(Math.round(dataObject.Close * 100) / 100).toFixed(3),
+              volume = dataObject.Volume,
 
-              volumeDatum = '[' + date + ',' + volume + ']',
-              priceDatum = '[' + date + ',' + price + ']';
+              volumeDataComponent = '[' + date + ',' + volume + ']',
+              priceDataComponent = '[' + date + ',' + price + ']';
 
-              volumeData.unshift(volumeDatum);
-              priceData.unshift(priceDatum);
+              volumeData.unshift(volumeDataComponent);
+              priceData.unshift(priceDataComponent);
             });
 
             var formattedChartData =
@@ -450,7 +447,7 @@ angular.module('LSEInvest.services', [])
             chartDataCacheService.put(cacheKey, formattedChartData);
           })
           .error(function(error) {
-            console.log("Chart data error: " + error);
+            console.log("Chart data retrieval error: " + error);
             deferred.reject();
           });
       }
@@ -459,7 +456,7 @@ angular.module('LSEInvest.services', [])
     };
 
     return {
-      getHistoricalData: getHistoricalData
+      getStocksHistoricalData: getStocksHistoricalData
     };
   })
 
@@ -481,23 +478,7 @@ angular.module('LSEInvest.services', [])
     return stockPriceCache;
   })
 
-//   .factory('stockDetailsCacheService', function(CacheFactory) {
-//
-//   var stockDetailsCache;
-//
-//   if(!CacheFactory.get('stockDetailsCache')) {
-//     stockDetailsCache = CacheFactory('stockDetailsCache', {
-//       maxAge: 60 * 1000,
-//       deleteOnExpire: 'aggressive',
-//       storageMode: 'localStorage'
-//     });
-//   }
-//   else {
-//     stockDetailsCache = CacheFactory.get('stockDetailsCache');
-//   }
-//
-//   return stockDetailsCache;
-// })
+
 
 .factory('chartDataCacheService', function(CacheFactory) {
 
@@ -518,31 +499,31 @@ angular.module('LSEInvest.services', [])
   return chartDataCache;
 })
 
-.factory('followStockService', function(myStocksArrayService, myStocksCacheService, userService) {
+.factory('followStockService', function(favouriteStocksArrayService, favouriteStocksCacheService, userService) {
 
   return {
 
     follow: function(ticker) {
-      var stockToAdd = {"ticker": ticker};
+      var addStock = {"ticker": ticker};
 
-      myStocksArrayService.push(stockToAdd);
-      myStocksCacheService.put('myStocks', myStocksArrayService);
+      favouriteStocksArrayService.push(addStock);
+      favouriteStocksCacheService.put('favouriteStocks', favouriteStocksArrayService);
 
       if(userService.getUser()) {
-        userService.updateStocks(myStocksArrayService);
+        userService.updateFavouriteStocks(favouriteStocksArrayService);
       }
     },
 
     unfollow: function(ticker) {
-      for (var i = 0; i < myStocksArrayService.length; i++) {
-        if(myStocksArrayService[i].ticker == ticker) {
+      for (var i = 0; i < favouriteStocksArrayService.length; i++) {
+        if(favouriteStocksArrayService[i].ticker == ticker) {
 
-          myStocksArrayService.splice(i, 1);
-          myStocksCacheService.remove('myStocks');
-          myStocksCacheService.put('myStocks', myStocksArrayService);
+          favouriteStocksArrayService.splice(i, 1);
+          favouriteStocksCacheService.remove('favouriteStocks');
+          favouriteStocksCacheService.put('favouriteStocks', favouriteStocksArrayService);
 
           if(userService.getUser()) {
-            userService.updateStocks(myStocksArrayService);
+            userService.updateFavouriteStocks(favouriteStocksArrayService);
           }
 
           break;
@@ -552,8 +533,8 @@ angular.module('LSEInvest.services', [])
     },
 
     checkFollowing: function(ticker) {
-      for (var i = 0; i < myStocksArrayService.length; i++) {
-        if(myStocksArrayService[i].ticker == ticker) {
+      for (var i = 0; i < favouriteStocksArrayService.length; i++) {
+        if(favouriteStocksArrayService[i].ticker == ticker) {
           return true;
         }
       }
@@ -568,9 +549,9 @@ angular.module('LSEInvest.services', [])
   return {
 
     open: function(ticker, purchasePrice, quantity, timestamp) {
-      var stockToAdd = {"ticker": ticker, "purchase_price": purchasePrice, "quantity": quantity, "purchase_time": timestamp};
+      var addStock = {"ticker": ticker, "purchase_price": purchasePrice, "quantity": quantity, "purchase_time": timestamp};
 
-      openPositionsArrayService.push(stockToAdd);
+      openPositionsArrayService.push(addStock);
       openPositionsCacheService.put('openPositions', openPositionsArrayService);
 
       if(userService.getUser()) {
@@ -597,8 +578,8 @@ angular.module('LSEInvest.services', [])
     },
 
     // checkFollowing: function(ticker) {
-    //   for (var i = 0; i < myStocksArrayService.length; i++) {
-    //     if(myStocksArrayService[i].ticker == ticker) {
+    //   for (var i = 0; i < favouriteStocksArrayService.length; i++) {
+    //     if(favouriteStocksArrayService[i].ticker == ticker) {
     //       return true;
     //     }
     //   }
@@ -626,22 +607,22 @@ angular.module('LSEInvest.services', [])
   };
 })
 
-.factory('fillMyStocksCacheService', function(CacheFactory) {
+.factory('fillFavouriteStocksCacheService', function(CacheFactory) {
 
-  var myStocksCache;
+  var favouriteStocksCache;
 
-  if(!CacheFactory.get('myStocksCache')) {
-    myStocksCache = CacheFactory('myStocksCache', {
+  if(!CacheFactory.get('favouriteStocksCache')) {
+    favouriteStocksCache = CacheFactory('favouriteStocksCache', {
       storageMode: 'localStorage'
     });
   }
   else {
-    myStocksCache = CacheFactory.get('myStocksCache');
+    favouriteStocksCache = CacheFactory.get('favouriteStocksCache');
   }
 
-  var fillMyStocksCache = function() {
+  var fillFavouriteStocksCache = function() {
 
-    var myStocksArray = [
+    var favouriteStocksArray = [
       {ticker: "AAPL"},
       {ticker: "JPM"},
       {ticker: "FB"},
@@ -655,11 +636,11 @@ angular.module('LSEInvest.services', [])
       {ticker: "C"},
     ];
 
-    myStocksCache.put('myStocks', myStocksArray);
+    favouriteStocksCache.put('favouriteStocks', favouriteStocksArray);
   };
 
   return {
-    fillMyStocksCache: fillMyStocksCache
+    fillFavouriteStocksCache: fillFavouriteStocksCache
   };
 })
 
@@ -713,11 +694,11 @@ angular.module('LSEInvest.services', [])
   };
 })
 
-.factory('myStocksCacheService', function(CacheFactory) {
+.factory('favouriteStocksCacheService', function(CacheFactory) {
 
-  var myStocksCache = CacheFactory.get('myStocksCache');
+  var favouriteStocksCache = CacheFactory.get('favouriteStocksCache');
 
-  return myStocksCache;
+  return favouriteStocksCache;
 })
 
 .factory('openPositionsCacheService', function(CacheFactory) {
@@ -756,15 +737,15 @@ angular.module('LSEInvest.services', [])
   return reports;
 })
 
-.factory('myStocksArrayService', function(fillMyStocksCacheService, myStocksCacheService) {
+.factory('favouriteStocksArrayService', function(fillFavouriteStocksCacheService, favouriteStocksCacheService) {
 
-  if(!myStocksCacheService.info('myStocks')) {
-    fillMyStocksCacheService.fillMyStocksCache();
+  if(!favouriteStocksCacheService.info('favouriteStocks')) {
+    fillFavouriteStocksCacheService.fillFavouriteStocksCache();
   }
 
-  var myStocks = myStocksCacheService.get('myStocks');
+  var favouriteStocks = favouriteStocksCacheService.get('favouriteStocks');
 
-  return myStocks;
+  return favouriteStocks;
 })
 
 
@@ -784,11 +765,11 @@ angular.module('LSEInvest.services', [])
   return notesCache;
 })
 
-.factory('newsService', function($q, $http) {
+.factory('newsfeedService', function($q, $http) {
 
   return {
 
-    getNews: function(ticker) {
+    getNewsfeed: function(ticker) {
 
       var deferred = $q.defer(),
 
@@ -800,12 +781,14 @@ angular.module('LSEInvest.services', [])
         .success(function(xml) {
           var xmlDoc = x2js.parseXmlString(xml),
           json = x2js.xml2json(xmlDoc),
-          jsonData = json.rss.channel.item;
-          deferred.resolve(jsonData);
+          // json_data = json.rss.channel.item;
+          // changed json file as, format from API changed 
+          json_data = json.channel.item;
+          deferred.resolve(json_data);
         })
         .error(function(error) {
           deferred.reject();
-          console.log("News error: " + error);
+          console.log("News feed error: " + error);
         });
 
       return deferred.promise;
@@ -814,7 +797,7 @@ angular.module('LSEInvest.services', [])
 })
 
 
-.factory('notesService', function(notesCacheService, userService) {
+.factory('noteService', function(notesCacheService, userService) {
 
   return {
 
@@ -824,63 +807,61 @@ angular.module('LSEInvest.services', [])
 
     addNote: function(ticker, note) {
 
-      var stockNotes = [];
+      var userNotes = [];
 
       if(notesCacheService.get(ticker)) {
-        stockNotes = notesCacheService.get(ticker);
-        stockNotes.push(note);
+        userNotes = notesCacheService.get(ticker);
+        userNotes.push(note);
       }
       else {
-        stockNotes.push(note);
+        userNotes.push(note);
       }
 
-      notesCacheService.put(ticker, stockNotes);
+      notesCacheService.put(ticker, userNotes);
 
       if(userService.getUser()) {
         var notes = notesCacheService.get(ticker);
-        userService.updateNotes(ticker, stockNotes);
+        userService.updateNotes(ticker, userNotes);
       }
     },
 
     deleteNote: function(ticker, index) {
 
-      var stockNotes = [];
+      var userNotes = [];
 
-      stockNotes = notesCacheService.get(ticker);
-      stockNotes.splice(index, 1);
-      notesCacheService.put(ticker, stockNotes);
+      userNotes = notesCacheService.get(ticker);
+      userNotes.splice(index, 1);
+      notesCacheService.put(ticker, userNotes);
 
       if(userService.getUser()) {
         var notes = notesCacheService.get(ticker);
-        userService.updateNotes(ticker, stockNotes);
+        userService.updateNotes(ticker, userNotes);
       }
     }
   };
 })
 
-.factory('stockDataService', function($q, $http, encodeURIService, stockPriceCacheService){
+.factory('stockDataService', function($q, $http, stockPriceCacheService){
 
-  var getDetailsData = function(ticker) {
+  var getStockDetailsData = function(ticker) {
     var deferred = $q.defer(),
-    query = 'select * from yahoo.finance.quotes where symbol IN ("' + ticker + '")',
-    url = 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIService.encode(query) + '&format=json&env=http://datatables.org/alltables.env';
     url2 = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22"+ ticker +"%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
-// added a second url variable after the first one started throwing errors.
+
 
     $http.get(url2)
       .success(function(json) {
-        var jsonData = json.query.results.quote;
-        deferred.resolve(jsonData);
+        var json_data = json.query.results.quote;
+        deferred.resolve(json_data);
       })
       .error(function(error) {
-        console.log("Details data error: " + error);
+        console.log("Stock details data error: " + error);
         deferred.reject();
       });
 
       return deferred.promise;
   };
 
-  var getPriceData = function(ticker){
+  var getStockPriceData = function(ticker){
     var deferred = $q.defer(),
     cacheKey = ticker,
     url = "http://finance.yahoo.com/webservice/v1/symbols/" + ticker + "/quote?format=json&view=detail";
@@ -888,13 +869,12 @@ angular.module('LSEInvest.services', [])
 
     $http.get(url)
       .success(function(json) {
-        // console.log(jsonData.data.list.resources[0].resource.fields);
-        var jsonData = json.list.resources[0].resource.fields;
-        deferred.resolve(jsonData);
-        stockPriceCacheService.put(cacheKey, jsonData);
+        var json_data = json.list.resources[0].resource.fields;
+        deferred.resolve(json_data);
+        stockPriceCacheService.put(cacheKey, json_data);
       })
       .error(function(error) {
-        console.log("Price data error: " + error);
+        console.log("Stock price data error: " + error);
         deferred.reject();
       });
 
@@ -902,8 +882,8 @@ angular.module('LSEInvest.services', [])
   };
 
   return {
-    getPriceData: getPriceData,
-    getDetailsData: getDetailsData
+    getStockPriceData: getStockPriceData,
+    getStockDetailsData: getStockDetailsData
   };
 })
 
@@ -915,15 +895,12 @@ angular.module('LSEInvest.services', [])
 
         var deferred = $q.defer(),
 
-          // sometimes I have to copy and repaste the string below into the
-          // url variable for it to work. Not sure why that is.
-          // https://s.yimg.com/aq/autoc?query=aapl&region=CA&lang=en-CA
           url = 'https://s.yimg.com/aq/autoc?query=' + query + '&region=CA&lang=en-CA&callback=JSON_CALLBACK';
 
         $http.jsonp(url)
           .success(function(data) {
-            var jsonData = data.ResultSet.Result;
-            deferred.resolve(jsonData);
+            var json_data = data.ResultSet.Result;
+            deferred.resolve(json_data);
           })
           .catch(function(error) {
             console.log(error);

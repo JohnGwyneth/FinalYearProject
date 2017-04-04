@@ -1,5 +1,8 @@
 angular.module('LSEInvest.filters', [])
 
+// All of the Filters listed below are *externally* sourced.
+// They are used to format text and numeric values.
+
 .filter('characters', function () {
   return function (input, chars, breakOnWord, ellipsis) {
     if (isNaN(chars)) return input;

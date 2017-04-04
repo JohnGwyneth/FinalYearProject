@@ -66,8 +66,11 @@ angular.module('LSEInvest.controllers', [])
         balance = "No User Found.";
       }
 
+      $scope.totalResult = 0;
       $scope.reportsData = [];
       reportArrayService.forEach(function(trade){
+        $scope.totalResult = $scope.totalResult + trade.result;
+        console.log("trade result: " + $scope.totalResult);
         console.log("Loading Reports.");
         $scope.reportsData.push(trade);
 
@@ -88,7 +91,7 @@ angular.module('LSEInvest.controllers', [])
         console.dir(stock);
         console.log("Quantity: " + stock.quantity);
 
-        var promise = stockDataService.getPriceData(stock.ticker);
+        var promise = stockDataService.getStockPriceData(stock.ticker);
 
         $scope.openPositionsData = [];
         $scope.stocksData = [stock];
@@ -138,23 +141,23 @@ angular.module('LSEInvest.controllers', [])
 
 }])
 
-.controller('MyStocksCtrl', ['$scope', 'myStocksArrayService', 'stockDataService','stockPriceCacheService', 'openPositionsArrayService', 'followStockService',
-  function($scope, myStocksArrayService, stockDataService, stockPriceCacheService, openPositionsArrayService, followStockService) {
+.controller('FavouriteStocksCtrl', ['$scope', 'favouriteStocksArrayService', 'stockDataService','stockPriceCacheService', 'openPositionsArrayService', 'followStockService',
+  function($scope, favouriteStocksArrayService, stockDataService, stockPriceCacheService, openPositionsArrayService, followStockService) {
 
     $scope.$on("$ionicView.afterEnter", function() {
-      $scope.getMyStocksData();
+      $scope.getFavouriteStocksData();
     });
 
-    $scope.getMyStocksData = function(){
-      myStocksArrayService.forEach(function(stock) {
+    $scope.getFavouriteStocksData = function(){
+      favouriteStocksArrayService.forEach(function(stock) {
         console.log("Testing 1");
 
-        var promise = stockDataService.getPriceData(stock.ticker);
+        var promise = stockDataService.getStockPriceData(stock.ticker);
 
-        $scope.myStocksData = [];
+        $scope.favouriteStocksData = [];
 
         promise.then(function(data) {
-          $scope.myStocksData.push(stockPriceCacheService.get(data.symbol));
+          $scope.favouriteStocksData.push(stockPriceCacheService.get(data.symbol));
         });
       });
       $scope.$broadcast('scroll.refreshComplete');
@@ -162,19 +165,19 @@ angular.module('LSEInvest.controllers', [])
 
     $scope.unfollowStock = function(ticker) {
       followStockService.unfollow(ticker);
-      $scope.getMyStocksData();
+      $scope.getFavouriteStocksData();
     };
 }])
 
-.controller('StockCtrl', ['$scope', '$stateParams', '$window', '$ionicPopup', '$cordovaInAppBrowser', 'stockDataService', 'dateService', 'chartDataService','notesService', 'newsService', 'followStockService', 'tradeService',
-function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stockDataService, dateService, chartDataService, notesService, newsService, followStockService, tradeService) {
+.controller('StockCtrl', ['$scope', '$stateParams', '$window', '$ionicPopup', '$cordovaInAppBrowser', 'stockDataService', 'dateService', 'chartDataRetrievalService','noteService', 'newsfeedService', 'followStockService', 'tradeService',
+function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stockDataService, dateService, chartDataRetrievalService, noteService, newsfeedService, followStockService, tradeService) {
   $scope.ticker = $stateParams.stockTicker;
   $scope.chartView = 4;
   $scope.following = followStockService.checkFollowing($scope.ticker);
   $scope.oneYearAgoDate = dateService.oneYearAgoDate();
   $scope.todayDate = dateService.currentDate();
 
-  $scope.stockNotes = [];
+  $scope.userNotes = [];
   $scope.transaction = {};
 
 
@@ -182,11 +185,11 @@ function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stock
   console.log(dateService.oneYearAgoDate());
 
   $scope.$on("$ionicView.afterEnter", function()  {
-    getPriceData();
-    getDetailsData();
-    getChartData();
-    getNews();
-    $scope.stockNotes = notesService.getNotes($scope.ticker);
+    getStockPriceData();
+    getStockDetailsData();
+    getInteractiveChartData();
+    getNewsfeed();
+    $scope.userNotes = noteService.getNotes($scope.ticker);
   });
 
   $scope.toggleFollow = function() {
@@ -223,11 +226,11 @@ function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stock
     }
 
     console.log("QUANTITY VALUE: " + transactionQuantity);
-    console.log("STOCK CTRL, Data: " + $scope.stockDetailsData.Ask);
-    console.log("Using Price Data:" + $scope.stockPriceData.price);
-    // var stockPrice = $scope.stockDetailsData.Ask;
-    var stockPrice = $scope.stockPriceData.price;
-    var stockName = $scope.stockDetailsData.Name;
+    console.log("STOCK CTRL, Data: " + $scope.displayStockDetails.Ask);
+    console.log("Using Price Data:" + $scope.displayStockPrice.price);
+
+    var stockPrice = $scope.displayStockPrice.price;
+    var stockName = $scope.displayStockDetails.Name;
     tradeService.openPosition(stockPrice, $scope.ticker, stockName, transactionQuantity, $scope.todayDate);
 
   };
@@ -251,14 +254,14 @@ function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stock
             text: '<b>Save</b>',
             type: 'button-balanced',
             onTap: function(e) {
-              notesService.addNote($scope.ticker, $scope.note);
+              noteService.addNote($scope.ticker, $scope.note);
             }
           }
         ]
       });
 
       note.then(function(res) {
-        $scope.stockNotes = notesService.getNotes($scope.ticker);
+        $scope.userNotes = noteService.getNotes($scope.ticker);
       });
     };
 
@@ -274,7 +277,7 @@ function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stock
             text: 'Delete',
             type: 'button-assertive button-small',
             onTap: function(e) {
-              notesService.deleteNote($scope.ticker, index);
+              noteService.deleteNote($scope.ticker, index);
             }
           },
           {
@@ -288,24 +291,24 @@ function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stock
             text: '<b>Save</b>',
             type: 'button-balanced button-small',
             onTap: function(e) {
-              notesService.deleteNote($scope.ticker, index);
-              notesService.addNote($scope.ticker, $scope.note);
+              noteService.deleteNote($scope.ticker, index);
+              noteService.addNote($scope.ticker, $scope.note);
             }
           }
         ]
       });
 
       note.then(function(res) {
-        $scope.stockNotes = notesService.getNotes($scope.ticker);
+        $scope.userNotes = noteService.getNotes($scope.ticker);
       });
     };
 
-  function getPriceData() {
+  function getStockPriceData() {
 
-      var promise = stockDataService.getPriceData($scope.ticker);
+      var promise = stockDataService.getStockPriceData($scope.ticker);
 
       promise.then(function(data) {
-        $scope.stockPriceData = data;
+        $scope.displayStockPrice = data;
 
         if(data.chg_percent >= 0 && data !== null) {
           $scope.reactiveColor = {'background-color': '#33cd5f', 'border-color': 'rgba(255,255,255,.3)'};
@@ -316,32 +319,33 @@ function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, stock
       });
     }
 
-  function getDetailsData() {
-    var promise = stockDataService.getDetailsData($scope.ticker);
+  function getStockDetailsData() {
+    var promise = stockDataService.getStockDetailsData($scope.ticker);
 
     promise.then(function(data){
       console.log(data);
-      $scope.stockDetailsData = data;
+      $scope.displayStockDetails = data;
     });
   }
 
-  function getNews() {
+  function getNewsfeed() {
 
-        $scope.newsStories = [];
+        $scope.newsData = [];
 
-        var promise = newsService.getNews($scope.ticker);
+        var promise = newsfeedService.getNewsfeed($scope.ticker);
 
         promise.then(function(data) {
-          $scope.newsStories = data;
+          $scope.newsData = data;
         });
       }
 
 
-function getChartData() {
-  var promise = chartDataService.getHistoricalData($scope.ticker, $scope.oneYearAgoDate, $scope.todayDate);
+function getInteractiveChartData() {
+  var promise = chartDataRetrievalService.getStocksHistoricalData($scope.ticker, $scope.oneYearAgoDate, $scope.todayDate);
 
   promise.then(function(data) {
     $scope.myData = JSON.parse(data)
+    //The map function seen below is externally sourced from the angular-nvd3 website
         .map(function(series) {
           series.values = series.values.map(function(d) { return {x: d[0], y: d[1] }; });
           return series;
@@ -349,7 +353,8 @@ function getChartData() {
     });
 }
 
-//chart Options
+//The code found below is externally sourced from the angular-nvd3 website
+//It defines the charts configuration options
   	var xTickFormat = function(d) {
   		var dx = $scope.myData[0].values[d] && $scope.myData[0].values[d].x || 0;
   		if (dx > 0) {
@@ -421,24 +426,24 @@ function getChartData() {
 
     $scope.search = function() {
       $scope.searchResults = '';
-      startSearch($scope.searchQuery);
+      searchBuffer($scope.searchQuery);
     };
 
-    var startSearch = ionic.debounce(function(query) {
+    var searchBuffer = ionic.debounce(function(query) {
       searchService.search(query)
         .then(function(data) {
           $scope.searchResults = data;
         });
     }, 400);
 
-    $scope.goToStock = function(ticker) {
+    $scope.openStock = function(ticker) {
       modalService.closeModal();
       $state.go('app.stock', {stockTicker: ticker});
     };
 }])
 
 
-.controller('LoginSignupCtrl', ['$scope', 'modalService', 'userService',
+.controller('UserAuthCtrl', ['$scope', 'modalService', 'userService',
   function($scope, modalService, userService) {
 
     $scope.user = {email: '', password: ''};

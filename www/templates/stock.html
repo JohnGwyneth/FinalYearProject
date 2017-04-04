@@ -12,17 +12,17 @@
 
     <div class="buttons" side="left">
       <div class="button button-clear display-flex">
-        <h6 id="stock-name">{{stockDetailsData.Name}}</h6>
+        <h6 id="stock-name">{{displayStockDetails.Name}}</h6>
       </div>
     </div>
 
-  <h2 class="title button-left button-right" id="stock-price">{{stockPriceData.price | shrinkNumber:2}}</h2>
+  <h2 class="title button-left button-right" id="stock-price">{{displayStockPrice.price | shrinkNumber:2}}</h2>
 
     <div class="buttons" side="right">
       <div class="button button-clear">
-        <h6 id="stock-change" ng-class="stockPriceData.change < 0 ? 'assertive' : 'balanced'"><span ng-if="stockPriceData.change
-           > 0">+</span>{{stockPriceData.change | shrinkNumber:2}}<br>(<span ng-if="stockPriceData.change > 0">+</span>
-          {{stockPriceData.chg_percent | number:3}}%)</h6>
+        <h6 id="instrument-change" ng-class="displayStockPrice.change < 0 ? 'assertive' : 'balanced'"><span ng-if="displayStockPrice.change
+           > 0">+</span>{{displayStockPrice.change | shrinkNumber:2}}<br>(<span ng-if="displayStockPrice.change > 0">+</span>
+          {{displayStockPrice.chg_percent | number:3}}%)</h6>
       </div>
     </div>
   </div>
@@ -50,72 +50,72 @@
         <span class="col col-15 input-label">Quantity</span>
         <input type="tel" placeholder="1" value="1" min="0" max="1000" ng-model="transaction.quantity">
         <div class="col">Total Price: </div>
-        <div class="col col-20">{{stockPriceData.price * transaction.quantity | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockPrice.price * transaction.quantity | shrinkNumber: 2}}</div>
       </label>
     </div>
 
 
-    <!-- Used to use DetailsData for prices but changed due to unreliablity -->
+    <!-- Previously used DetailsData for Ask price, but changed due to unreliablity -->
     <div class="card" id="market-data-card">
-      <div class="item item-divider">Market Data <span class="last-trade">Last trade: {{stockPriceData.utctime | date:'h:mm a'}}</span></div>
+      <div class="item item-divider">Stock Market Data <span class="last-trade">Last trade: {{displayStockPrice.utctime | date:'h:mm a'}}</span></div>
       <div class="row row-center">
         <div class="col">Ask: </div>
-        <div class="col col-20">{{stockPriceData.price | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockPrice.price | shrinkNumber: 2}}</div>
         <div class="col">Bid: </div>
-        <div class="col col-20">{{stockDetailsData.Bid | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockDetails.Bid | shrinkNumber: 2}}</div>
       </div>
       <div class="row row-center">
         <div class="col">Prev. Close: </div>
-        <div class="col col-20">{{stockDetailsData.PreviousClose | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockDetails.PreviousClose | shrinkNumber: 2}}</div>
         <div class="col">Open: </div>
-        <div class="col col-20">{{stockDetailsData.Open | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockDetails.Open | shrinkNumber: 2}}</div>
       </div>
       <div class="row row-center">
         <div class="col">Day's High: </div>
-        <div class="col col-20">{{stockPriceData.day_high | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockPrice.day_high | shrinkNumber: 2}}</div>
         <div class="col">Day's Low: </div>
-        <div class="col col-20">{{stockPriceData.day_low | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockPrice.day_low | shrinkNumber: 2}}</div>
       </div>
       <div class="row row-center">
         <div class="col">52w High: </div>
-        <div class="col col-20">{{stockDetailsData.YearHigh | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockDetails.YearHigh | shrinkNumber: 2}}</div>
         <div class="col">52w Low: </div>
-        <div class="col col-20">{{stockDetailsData.YearLow | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockDetails.YearLow | shrinkNumber: 2}}</div>
       </div>
       <div class="row row-center">
         <div class="col">Volume: </div>
-        <div class="col col-20">{{stockPriceData.volume | shrinkNumber: 2}}</div>
+        <div class="col col-20">{{displayStockPrice.volume | shrinkNumber: 2}}</div>
         <div class="col">Avg. Volume: </div>
-        <div class="col col-20">{{stockDetailsData.AverageDailyVolume | shrinkNumber:2}}</div>
+        <div class="col col-20">{{displayStockDetails.AverageDailyVolume | shrinkNumber:2}}</div>
       </div>
       <div class="row row-center">
       <div class="col">Market Cap: </div>
-      <div class="col col-20">{{stockDetailsData.MarketCapitalization}}</div>
+      <div class="col col-20">{{displayStockDetails.MarketCapitalization}}</div>
       <div class="col">EBITDA: </div>
-      <div class="col col-20">{{stockDetailsData.EBITDA}}</div>
+      <div class="col col-20">{{displayStockDetails.EBITDA}}</div>
     </div>
     <div class="row row-center">
       <div class="col">P/E: </div>
-      <div class="col col-20">{{stockDetailsData.PERatio | shrinkNumber:2}}</div>
+      <div class="col col-20">{{displayStockDetails.PERatio | shrinkNumber:2}}</div>
       <div class="col">EPS: </div>
-      <div class="col col-20">{{stockDetailsData.EarningsShare | shrinkNumber:2}}</div>
+      <div class="col col-20">{{displayStockDetails.EarningsShare | shrinkNumber:2}}</div>
     </div>
   </div>
 
     <div class="card" id="stock-notes">
-      <div class="item item-divider">Notes <span ng-click="addNote()" class="add-stock-note">Add <i class="icon ion-ios-plus"></i></span></div>
-      <a class="item" ng-repeat="note in stockNotes track by $index" ng-click="openNote($index, note.title, note.body)">
+      <div class="item item-divider">My Notes <span ng-click="addNote()" class="add-stock-note">Add <i class="icon ion-ios-plus"></i></span></div>
+      <a class="item" ng-repeat="note in userNotes track by $index" ng-click="openNote($index, note.title, note.body)">
         <h2>{{note.title}}</h2>
         <h6>{{note.date | date:'M/d/yy'}}</h6>
       </a>
     </div>
 
-    <div class="card" id="stock-news">
-      <div class="item item-divider">News</div>
-      <a class="item item-icon-right" ng-repeat="story in newsStories" ng-click="openWindow(story.link)">
-        <h2>{{story.title}}</h2>
-        <h6>{{story.pubDate | characters:17:false:false}}</h6>
-        <p ng-if="story.description.length > 0">{{story.description | characters:200:false:true}}</p>
+    <div class="card" id="stock-newsfeed">
+      <div class="item item-divider">News Feed</div>
+      <a class="item item-icon-right" ng-repeat="news in newsData" ng-click="openWindow(news.link)">
+        <h2>{{news.title}}</h2>
+        <h6>{{news.pubDate}}</h6>
+        <p ng-if="news.description.length > 0">{{news.description | characters:200:false:true}}</p>
         <i class="icon ion-ios-arrow-right"></i>
       </a>
     </div>
