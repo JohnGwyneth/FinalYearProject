@@ -1,4 +1,4 @@
-<ion-view view-title="My Stocks" id="my-stocks">
+<ion-view view-title="My Stocks" id="fav-stocks">
 
   <ion-nav-buttons side="right">
     <button class="button button-clear" ng-click="modalService.openModal(1)">
@@ -15,6 +15,7 @@
     ></ion-refresher>
 
     <!-- Note that shrinkNumber is an externally sourced function -->
+    <!-- Followed an online tutorial when creating the grid system -->
     <ion-list>
       <ion-item ng-repeat="instrument in favouriteStocksData | orderBy: '-chg_percent' track by instrument.symbol" ng-href="#/app/{{instrument.symbol}}">
         <div class="row row-center">

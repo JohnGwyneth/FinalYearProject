@@ -3,6 +3,7 @@
   <ion-content>
 
     <!-- <p>Welcome to the Learning Hub! Find help below...</p> -->
+    <!-- Uses an externally sourced expand function -->
     <ion-list>
       <ion-item ng-repeat="item in items" class="item item-text-wrap item-icon-right" ng-click="toggleItem(item)">
         <div ng-class="isItemShown(item) ? 'item-expand active' : 'item-expand inactive'">

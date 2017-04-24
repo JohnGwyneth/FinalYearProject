@@ -1,6 +1,6 @@
 angular.module('LSEInvest.filters', [])
 
-// All of the Filters listed below are *externally* sourced.
+// All of the Filters listed below are *EXTERNALLY* sourced.
 // They are used to format text and numeric values.
 
 .filter('characters', function () {

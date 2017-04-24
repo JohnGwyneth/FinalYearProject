@@ -150,7 +150,7 @@ angular.module('LSEInvest.controllers', [])
 
     $scope.getFavouriteStocksData = function(){
       favouriteStocksArrayService.forEach(function(stock) {
-        console.log("Testing 1");
+        // console.log("Testing 1");
 
         var promise = stockDataService.getStockPriceData(stock.ticker);
 
@@ -442,7 +442,7 @@ function getInteractiveChartData() {
     };
 }])
 
-
+//Follows format provided by Firebase
 .controller('UserAuthCtrl', ['$scope', 'modalService', 'userService',
   function($scope, modalService, userService) {
 

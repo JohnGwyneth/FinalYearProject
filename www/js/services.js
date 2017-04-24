@@ -48,6 +48,7 @@ angular.module('LSEInvest.services', [])
 
 })
 
+//Externally sourced URI Service, helps to improve readability of URLs
 .factory('encodeURIService', function(){
   return{
     encode: function(string) {
@@ -189,6 +190,7 @@ angular.module('LSEInvest.services', [])
 
 })
 
+//Login, Signup and Log out all follow the standard structure set by the firebase tutorials
 .factory('userService', function($q, $rootScope, $window, $timeout, firebaseDBRef, firebaseAuthRef, firebaseUserRef, favouriteStocksArrayService, favouriteStocksCacheService, notesCacheService, modalService, openPositionsArrayService, openPositionsCacheService, reportArrayService, reportCacheService) {
 
   var login = function(user, signup) {
@@ -281,12 +283,12 @@ angular.module('LSEInvest.services', [])
     var balance = 0;
     if (authData === null){
       balance = 1;
-      console.log("We Have No AuthData");
+      console.log("Error: Missing AuthData");
       return deferred.promise;
     }
     firebaseUserRef.child(authData.uid).child('balance').once('value', function(snapshot) {
       balance = snapshot.val();
-      console.log("We pulled");
+      console.log("Data successfully pulled.");
       console.log("User " + authData.email);
       console.log("Balance: " + balance);
       deferred.resolve(balance);
@@ -381,6 +383,8 @@ angular.module('LSEInvest.services', [])
   };
 })
 
+//Gets the current date and the date one year ago.
+//Then puts them in a presentable format.
 .factory('dateService', function($filter){
   var currentDate = function(){
     var d = new Date();
@@ -398,6 +402,7 @@ angular.module('LSEInvest.services', [])
   };
 })
 
+//All chart formatting is externally sourced from the libraries documentation page.
 .factory('chartDataRetrievalService', function($q, $http, chartDataCacheService){
   var getStocksHistoricalData = function(ticker, fromDate, todayDate){
     var deferred = $q.defer(),
@@ -577,15 +582,6 @@ angular.module('LSEInvest.services', [])
 
     },
 
-    // checkFollowing: function(ticker) {
-    //   for (var i = 0; i < favouriteStocksArrayService.length; i++) {
-    //     if(favouriteStocksArrayService[i].ticker == ticker) {
-    //       return true;
-    //     }
-    //   }
-    //   return false;
-    // }
-
   };
 })
 
@@ -620,6 +616,7 @@ angular.module('LSEInvest.services', [])
     favouriteStocksCache = CacheFactory.get('favouriteStocksCache');
   }
 
+  //Sets the Apps default stocks. Chose popular US stocks based on advice given by the society.
   var fillFavouriteStocksCache = function() {
 
     var favouriteStocksArray = [
@@ -781,9 +778,9 @@ angular.module('LSEInvest.services', [])
         .success(function(xml) {
           var xmlDoc = x2js.parseXmlString(xml),
           json = x2js.xml2json(xmlDoc),
-          // json_data = json.rss.channel.item;
-          // changed json file as, format from API changed 
-          json_data = json.channel.item;
+          json_data = json.rss.channel.item;
+          // changed json file as, format from API changed
+          // json_data = json.channel.item;
           deferred.resolve(json_data);
         })
         .error(function(error) {
